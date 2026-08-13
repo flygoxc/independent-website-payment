@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 81 · IOSS是什么？欧盟增值税新规怎么操作？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>IOSS是什么？欧盟增值税新规怎么操作？</h1>
+      <div class="day">Day 81 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你寄快递到国外，有两种方式：一种是填一堆报关单、交关税、等清关，慢且麻烦；另一种是走"快捷通道"，提前办好手续，包裹到目的地直接放行。欧盟的VAT也有一个类似的"快捷通道"，叫IOSS。</p>
+<h2>一张图看懂</h2>
+<p><strong>IOSS（Import One-Stop Shop，进口一站式申报）</strong>，是欧盟在2021年7月推出的增值税申报简化机制，专门针对从非欧盟国家寄入欧盟的小包裹（商品价值150欧元以下）。</p>
+<p>在IOSS推出之前，卖家要把包裹寄到欧盟，VAT是在进口时由海关收取的——买家可能需要去邮局补税才能拿到包裹，体验很差。</p>
+<p>IOSS改变了这个流程：卖家在结账时就向买家收取VAT，然后通过IOSS系统统一申报缴纳给某一个欧盟成员国税务机关，该税务机关再分配给其他成员国。包裹到达欧盟时，海关看到已经交过VAT了，直接放行。</p>
+<table><thead><tr><th>对比项</th><th>没有IOSS</th><th>有IOSS</th></tr></thead><tbody><tr><td>VAT收取</td><td>进口时由海关/邮递公司收取</td><td>销售时由卖家收取</td></tr><tr><td>买家体验</td><td>可能要去邮局补税才能收包裹</td><td>包裹直接送达，无需补税</td></tr><tr><td>申报方式</td><td>各国分别申报</td><td>在一个欧盟国家统一申报</td></tr><tr><td>清关速度</td><td>慢（需要核税）</td><td>快（已完税，快速放行）</td></tr></tbody></table>
+<p>需要注意的几个要点：</p>
+<ul><li>IOSS只适用于<strong>商品价值150欧元以下</strong>的包裹。超过150欧元的，仍需按照传统进口流程缴纳关税和VAT。</li><li>注册IOSS是<strong>自愿的</strong>，但如果你不注册，买家在收包裹时可能被要求补缴VAT，体验差，退款和差评风险高。</li><li>注册后，你获得一个IOSS号码，在发货时填在报关单上，海关就能识别这个包裹已完税。</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 728 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">卖家注册IOSS</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">结账时收取VAT</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">包裹贴上IOSS</text>
+<text x="364.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">号码</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="510.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">到达欧盟海关：已</text>
+<text x="510.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">完税</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="598" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="656.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">卖家按月统一申报</text>
+<text x="656.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">缴纳VAT</text>
+<line x1="572" y1="43.0" x2="592" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>通过税务代理注册</strong>。非欧盟企业不能自己直接注册IOSS，必须通过欧盟境内的中介（Intermediary）来注册和申报。市面上有很多提供IOSS注册服务的税务代理，费用因服务商而异，请以实际报价为准。</li><li><strong>在独立站设置正确的税率</strong>。IOSS要求你按买家所在国的VAT税率收取税款。确保你的建站平台能根据买家地址自动计算正确的VAT——Shopify、WooCommerce等主流平台都支持。</li><li><strong>在报关单上标注IOSS号码</strong>。发货时，在海关申报单的相应位置填上你的IOSS号码。这样海关扫描时就能确认包裹已完税，加速清关。具体填写位置请咨询你的物流服务商。</li><li><strong>按月申报</strong>。IOSS是按月申报的，每个月底前要提交上个月的VAT申报并缴款。逾期会有罚款，请设好提醒。</li><li><strong>保留好记录</strong>。每笔交易的订单号、买家所在国、商品金额、VAT金额，至少保存10年（欧盟要求）。这些数据在税务检查时是必要的。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><p>注册IOSS后不按期申报、漏报或少报VAT，将被税务机关追缴税款并加收罚款和利息。如果IOSS号码被滥用（比如多个卖家共用一个号码），可能导致号码被撤销。请确保IOSS申报的真实性和及时性，必要时委托专业税务代理处理。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">IOSS就是欧洲增值税的"简化通道"——注册一个号码、结账时收税、按月统一申报，包裹快速通关。</div></div>
+    <div class="next-preview">明天 <strong>Day 82</strong>：英国VAT和澳洲GST——其他国家的税怎么交？<br>
+<a href="Day82-英国VAT和澳洲GST.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 25 · CVV和AVS——两张防盗刷的"安全网"</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>CVV和AVS——两张防盗刷的"安全网"</h1>
+      <div class="day">Day 25 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>&gt; 独立站跨境支付100天 · 第二阶段：跨境收单篇</p>
+<p>---</p>
+<p><strong>快递员上门送货，一般要干两件事：</strong> 第一，让你在签收单上签个名，证明"我收到了"；第二，如果你写的是"请放门卫处"，他还会核对一下门牌号对不对，生怕送错。</p>
+<p><strong>CVV 和 AVS，就是网上刷卡时的"签名"和"核对地址"。</strong></p>
+<p>---</p>
+<h2>一张图看懂</h2>
+<ul><li><strong>CVV（Card Verification Value，卡片验证码，就是卡背面那3位数字，美国运通卡是正面4位）</strong>。它印在卡上但不在磁条/芯片里，意味着"刷卡机知道、但光靠复制卡号的人不知道"。</li><li><strong>AVS（Address Verification Service，地址验证服务，把买家填的账单地址和发卡行登记的地址做比对的服务）</strong>，主要在英国、美国等地区使用。</li></ul>
+<table><thead><tr><th></th><th>CVV</th><th>AVS</th></tr></thead><tbody><tr><td>验证什么</td><td>卡背面的3位码</td><td>买家填的账单地址</td></tr><tr><td>像什么</td><td>快递签字</td><td>核对收件地址</td></tr><tr><td>谁在用</td><td>全球通用</td><td>主要英美等地</td></tr><tr><td>能防什么</td><td>盗用卡号</td><td>用假地址下单的骗子</td></tr></tbody></table>
+<p>为什么说它们是"安全网"？因为独立站刷卡是"不见面交易"，骗子手里就算有卡号、有效期，没有CVV就过不了第一关；AVS还能比对地址，地址对不上，就值得怀疑。很多收单服务商会把这两项检查的结果反馈给你（比如"匹配/不匹配/无法比对"）。</p>
+<p>---</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 728 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">买家填卡信息</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">【CVV检查：卡</text>
+<text x="218.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">背3位码对不对…</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">【AVS检查：账</text>
+<text x="364.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">单地址和银行档…</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="510.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">都通过</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="598" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="656.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">交易放行</text>
+<line x1="572" y1="43.0" x2="592" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>付款页面必须收集CVV</strong>：这是基本功。不要求CVV的收单方式，风险极高，尽量避开。</li><li><strong>看懂AVS结果</strong>：如果买家地址"不匹配"或"无法比对"，要么联系买家核实，要么对这类订单多留个心眼，甚至可以要求先走3DS验证。</li><li><strong>小心买家拒付</strong>：如果买家声称"不是我刷的"，而交易时AVS匹配、CVV正确，证据对你就非常有利——所以<strong>如实采集这些信息，本身就是你的护身符</strong>。</li></ol>
+<p>---</p></div>
+<div class="warning-box"><h3>风险提示</h3><p>CVV和AVS只是"多道锁"，<strong>不是百分百保险</strong>。真卡持有者本人欺诈（下单后否认）、或者卡信息连同CVV一起被盗的情况依然存在。合规上还要注意：<strong>不要在交易完成后把CVV存下来</strong>（包括数据库、邮件），这违反PCI-DSS规则，具体我们Day 35展开讲。</p>
+<p>---</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text"><strong>CVV是"刷卡签字"、AVS是"核对收件地址"，两张安全网帮你挡住大部分卡号盗用和假地址下单的骗子，但记住——它们只是防线，不是金钟罩。</strong></div></div>
+    <div class="next-preview">明天 <strong>Day 26</strong>：什么是MOTO交易？为什么风险更高？<br>
+<a href="Day26-什么是MOTO交易.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

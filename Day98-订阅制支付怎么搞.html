@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 98 · 什么是订阅制支付？recurring billing怎么搞？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是订阅制支付？recurring billing怎么搞？</h1>
+      <div class="day">Day 98 / 100 · 阅读约 5 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>老陈做了一款在线工具，每月收费19.99美元。一开始他让客户每月手动续费——结果每个月都有三成客户忘记续，流失严重。"就像健身房月卡，每月要自己跑去前台续费，很多人嫌麻烦就不续了。"</p>
+<p>后来他改成了"自动续费"——客户第一次绑定信用卡，以后每月自动扣款，不用操心。流失率立刻降了一半。这就是订阅制支付的魅力。</p>
+<h2>一张图看懂</h2>
+<p><strong>订阅制支付（Subscription Payment / Recurring Billing）</strong>，就是客户授权后，系统定期自动从客户卡上扣款。就像你开了一个视频网站会员，每月自动扣钱，不用手动续费。</p>
+<p><strong>订阅扣款有两种方式：</strong></p>
+<table><thead><tr><th>方式</th><th>比喻</th><th>特点</th></tr></thead><tbody><tr><td>定期定额扣款</td><td>每月固定扣会员费</td><td>金额固定，简单</td></tr><tr><td>按量计费扣款</td><td>用多少扣多少</td><td>金额浮动，需先授权后扣</td></tr></tbody></table>
+<p><strong>订阅制支付的关键问题：</strong></p>
+<p><strong>问题1：怎么拿到"授权"？</strong> 客户第一次付款时，你不仅要收这一次的钱，还要拿到一个"令牌"（就是上一期讲的令牌化），以后用这个令牌来扣款。不能每个月都让客户输一次卡号。</p>
+<p><strong>问题2：扣款失败怎么办？</strong> 卡可能过期、余额可能不足、卡可能被挂失。扣款失败后，系统需要自动重试。通常做法是：第1天扣款失败 → 第3天重试 → 第5天重试 → 仍失败则暂停订阅，通知客户更新卡片。</p>
+<p><strong>问题3：客户怎么取消？</strong> 法规要求客户必须能方便地取消订阅。你的网站上要有"取消订阅"按钮，不能藏着掖着。就像健身房会员应该能随时退卡，不能设各种门槛。</p>
+<p><strong>问题4：试用期的处理。</strong> 很多订阅服务提供"7天免费试用"。试用期内不扣钱，试用结束时自动转付费。这需要系统设置一个"试用期"阶段，到期自动开始扣款。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">订阅扣款的完整生命周期，像一个月度循环：
+
+客户注册
+  │
+  ▼
+绑定信用卡 → 获取支付令牌
+  │
+  ▼
+┌──→ 每月扣款日：用令牌自动扣款 ←──┐
+│         │                        │
+│    ┌────┴────┐                   │
+│    ▼         ▼                   │
+│  成功      失败                   │
+│    │         │                   │
+│    │    ┌────┤                   │
+│    │    ▼    ▼                   │
+│    │  重试1  重试2  重试3         │
+│    │    │            │           │
+│    │   成功        仍失败          │
+│    │    │            │           │
+│    │    │      暂停订阅+通知客户  │
+│    │    │            │           │
+│    │    │      客户更新卡片       │
+│    │    │            │           │
+│    │    │      恢复订阅 ──────────┘
+│    │    │
+│    └────┘
+│         │
+│    发送扣款成功通知
+│    继续提供服务
+│         │
+└─────────┘  （每月循环）
+
+客户主动取消 → 停止循环 → 结束</pre></div>
+<div class="diagram-caption">▲ 订阅扣款是一个"月度循环"——每月扣一次，成功就继续，失败就重试，实在不行暂停等客户更新卡片。就像月卡自动续费，卡里有钱就续上，没钱就提醒你充。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>怎么在独立站上实现订阅支付？</strong></p>
+<p><strong>第1步：选一个支持订阅的支付通道。</strong> Stripe Billing、PayPal Subscriptions、Airwallex都支持。Shopify也有原生的订阅功能（通过Shopify Payments或第三方插件）。</p>
+<p><strong>第2步：设置订阅计划。</strong> 定义好：周期（每月/每季度/每年）、金额、试用期（如有）。比如"每月19.99美元，7天免费试用"。</p>
+<p><strong>第3步：配置扣款失败处理规则。</strong> 建议：失败后3天重试、再5天重试、再7天重试。共三次重试，间隔越来越长，给客户时间处理卡的问题。</p>
+<p><strong>第4步：做好客户通知。</strong> 每次扣款前后都发邮件通知：</p>
+<ul><li>扣款前3天："您的订阅将于3天后续费"</li><li>扣款成功："已成功扣款$19.99"</li><li>扣款失败："扣款失败，请更新支付信息"</li><li>试用期到期前3天："您的免费试用即将结束，将开始自动扣费"</li></ul>
+<p><strong>第5步：关注三个关键指标。</strong></p>
+<ul><li><strong>月度经常性收入（MRR）</strong>：每月稳定收入有多少</li><li><strong>流失率（Churn Rate）</strong>：每月有多少客户取消</li><li><strong>扣款成功率</strong>：自动扣款的成功率，低于90%要排查</li></ul>
+<p><strong>一个实用技巧</strong>：给年付选项打折。比如月付$19.99，年付$199（省$40）。年付能锁住客户、减少流失、一次性收到更多现金。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>订阅制有严格的法规要求：客户必须明确知情并同意自动续费，不能"默认勾选"自动续费选项，否则可能面临监管处罚。</li><li>客户取消订阅的入口必须明显且便捷，故意设置取消障碍可能违反消费者保护法规。</li><li>扣款前应提前通知客户（通常至少提前3-5天），告知扣款金额和日期，请核实目标市场的相关法规。</li><li>扣款失败后的重试次数和频率需合规，部分国家对重试次数有限制，过度重试可能被视为骚扰。</li><li>试用期转付费的转换必须有明确授权，不得在客户不知情的情况下开始扣款。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">订阅制支付就像每月自动扣的会员费——拿到授权令牌、设好重试规则、做好客户通知，客户不用操心续费，你也不用操心催款，双赢。</div></div>
+    <div class="next-preview">明天 <strong>Day 99</strong>：跨境支付的未来：数字货币、稳定币、嵌入式金融<br>
+<a href="Day99-跨境支付的未来趋势.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 14 · T+0、T+1、T+2——到账时间谁说了算？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>T+0、T+1、T+2——到账时间谁说了算？</h1>
+      <div class="day">Day 14 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>快递有普通件、次日达、当日达，价格不同，到货时间不同。你赶时间就选贵的加急，不赶时间就选便宜的慢慢等。跨境结算也一样，服务商会告诉你"T+1 结算""T+2 结算"——这里面的 T，就是买家付款当天。</p>
+<p>搞清楚这个，你就知道手里的钱什么时候能动。</p>
+<h2>结算周期 T+n</h2>
+<p><strong>结算周期（Settlement Cycle，就是从交易发生到资金实际可用所经过的时间）</strong>，用 T+n 来表示：</p>
+<ul><li><strong>T</strong>：交易日（Trade Day），也就是买家付款那天，记为第 0 天。</li><li><strong>T+0</strong>：付款当天就结算到账（通常指当天资金就可用于交易，但不一定当天就能提现到银行卡）。</li><li><strong>T+1</strong>：交易日后第 1 个工作日到账。</li><li><strong>T+2</strong>：交易日后第 2 个工作日到账。</li></ul>
+<p>注意关键词：<strong>工作日</strong>。周五晚上买家付款，T+1 意味着下周一（甚至下周二，如果周一放假）才到账。周六周日"不算日子"，这一点最容易让新手算错时间。</p>
+<p>为什么跨境结算比国内慢？因为它要完成几件事：</p>
+<table><thead><tr><th>环节</th><th>要做什么</th><th>好比</th></tr></thead><tbody><tr><td>卡组织清算</td><td>各家银行把交易信息汇总对账</td><td>快递分拣</td></tr><tr><td>国际清算网络</td><td>信息跨国传递</td><td>国际航班</td></tr><tr><td>银行间结算</td><td>钱通过清算系统划转</td><td>干线运输</td></tr><tr><td>银行入账处理</td><td>银行把款记到你账户</td><td>驿站派件</td></tr><tr><td>节假日</td><td>两地休息日不同</td><td>周末不送货</td></tr></tbody></table>
+<p>每一步都可能占掉时间，所以跨境结算一般比国内慢一两天，属于正常现象。</p>
+<p>还有个小概念：<strong>入账（Posting，就是银行把这笔钱正式记到你的账户余额里）</strong>。结算完成了，你的账户余额里才会出现这笔钱；如果只是"已授权"或"清算中"，余额里还没有它。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">一条横向时间轴，从周一到周五标上格子</div></div><div class="step"><div class="num">2</div><div class="txt">第一天（周一）画一个小人刷卡，下面写"T：买家付款"</div></div><div class="step"><div class="num">3</div><div class="txt">周二格子里画一个分拣机，写"清算"</div></div><div class="step"><div class="num">4</div><div class="txt">周三格子里画一个钱袋，写"T+1 结算到账"</div></div><div class="step"><div class="num">5</div><div class="txt">时间轴下面加一条注释：如果周一付款但周二是节假日，到账顺延一天</div></div><div class="step"><div class="num">6</div><div class="txt">旁边画一个快递箱，标签写着"结算=派件完成"</div></div></div></div>
+<div class="diagram-caption">▲ 时间轴从左到右，付款、清算、结算依次推进，中间每过一天就是"一个工作日"。T+1 不是"后天"，而是"下一个工作日"。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>现金流规划按"最晚"算</strong>：做备货、投广告前，按最长的结算周期预留资金，别把"待结算"的订单当"已到账"的钱花。</li><li><strong>把"买家付款日"和"你可用资金日"分开记账</strong>：后台的"已付款订单"金额，和银行里的"实际可用余额"是两本账，看混了月底必乱。</li><li><strong>不同支付方式到账速度不同</strong>：信用卡收单通常有结算周期，有的本地支付方式或数字钱包更快，可以组合使用，优化整体资金周转。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>T+n 是"目标时间"，节假日、风控审核、交易纠纷都可能导致到账延后，具体以服务商和银行的到账通知为准。</li><li>"实时到账"的承诺要核实：是否真的实时可用，还是仅指"实时受理"，条款里写清楚。</li><li>遇到到账异常，先查清算状态（Day 13），再联系服务商，别在没确认前就重复发起转账或投诉。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">T+0、T+1、T+2 就是"付款后第几个工作日到账"——按工作日算，别把周末当日子，现金流就心里有数了。 （预告：所有零件都认识了，明天把整条路线拼成一张总图，带你最后复习一遍。）</div></div>
+    <div class="next-preview">明天 <strong>Day 15</strong>：一张图看懂：钱从买家到卖家的完整旅行路线<br>
+<a href="Day15-一张图看懂钱从买家到卖家的完整旅行路线.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

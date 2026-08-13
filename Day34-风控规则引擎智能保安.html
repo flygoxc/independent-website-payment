@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 34 · 风控规则引擎——你的"智能保安"</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>风控规则引擎——你的"智能保安"</h1>
+      <div class="day">Day 34 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>&gt; 独立站跨境支付100天 · 第二阶段：跨境收单篇</p>
+<p>---</p>
+<p><strong>进商场都要过安检口。</strong> 机器扫行李、安检员看人，正常顾客几秒钟就放行，可要是有人身上带着可疑物品、大包小包神色慌张，立刻会被拦下来人工检查。</p>
+<p><strong>你的独立站也需要这样一个"安检口"——风控规则引擎（Risk Rule Engine，根据提前设定好的规则自动判断每一笔交易风险的系统）。</strong></p>
+<p>---</p>
+<h2>一张图看懂</h2>
+<p><strong>风控规则引擎</strong>，就是一套"如果……就……"的自动判断系统，像商场安检规则一样：</p>
+<table><thead><tr><th>规则（如果）</th><th>动作（就）</th></tr></thead><tbody><tr><td>下单金额超过2000美元</td><td>标记"高风险"，转人工审核</td></tr><tr><td>收货地址与账单地址不同国</td><td>要求3DS验证</td></tr><tr><td>同一邮箱1小时内下单超过3次</td><td>自动拦截</td></tr><tr><td>卡号在欺诈黑名单上</td><td>直接拒绝</td></tr><tr><td>交易风险评分很高</td><td>拒绝并记录</td></tr></tbody></table>
+<p>为什么叫"规则引擎"？因为它像发动机一样"轰隆隆"地不停运转，<strong>每一笔交易进来，都自动跑一遍规则清单，几秒内给出"放行/拦截/转人工"的判断</strong>。你不用自己盯着每一单，它24小时帮你站岗。</p>
+<p>它还能"越用越聪明"：把你确认过的欺诈订单特征学进规则里，以后类似订单能更快识别。很多收单服务商都自带风控系统，你只需要在后台勾选规则、调阈值。</p>
+<p>---</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 436 240" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">买家下单</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">风控规则引擎（规</text>
+<text x="218.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">则1</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">规则2</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="14" y="168" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="72.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">发货</text>
+<rect x="160" y="168" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="187.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">放行 / 拦截 </text>
+<text x="218.0" y="203.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">/ 人工审核</text>
+<line x1="134" y1="197.0" x2="154" y2="168" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="168" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="364.0" y="187.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">规则3……逐条检</text>
+<text x="364.0" y="203.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">查）</text>
+<line x1="280" y1="197.0" x2="300" y2="168" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>先了解服务商自带的风控</strong>：签约时问清楚：自带哪些风控规则？能不能自己调阈值？要不要额外收费？</li><li><strong>规则要"分级"</strong>：别一刀切。低风险放行、中风险加验证、高风险拦截+人工，既防骗子又不误伤正常客人。</li><li><strong>定期看看"拦截记录"</strong>：后台会记录被拦截的订单，看看有没有"误杀"（正常客户被拦），及时调整规则，别把好客人挡在门外。</li></ol>
+<p>---</p></div>
+<div class="warning-box"><h3>风险提示</h3><p>风控规则太松，欺诈钻空子；太严，订单流失。<strong>没有一劳永逸的配置</strong>，要结合你的品类、客单价、主要市场持续调整。另外注意，涉及用户数据的风控行为要符合数据保护法规，不得滥用个人信息。</p>
+<p>---</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text"><strong>风控规则引擎就是你独立站的"智能保安"，用一条条"如果就"的规则自动拦骗子，但你也要经常看看它的"误杀率"，别把好客人和坏人一起挡在门外。</strong></div></div>
+    <div class="next-preview">明天 <strong>Day 35</strong>：PCI-DSS是什么？为什么不能随便存卡号？<br>
+<a href="Day35-PCI-DSS合规.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 55 · 独立站跨境支付100天 · Day 55：SWIFT GPI是什么？跨境汇款的"快车道"</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 55：SWIFT GPI是什么？跨境汇款的"快车道"</h1>
+      <div class="day">Day 55 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你寄国际快递，有经济件也有加急件。经济件走海运陆运，两周到；加急件走空运，三天到。跨境汇款也有"经济件"和"加急件"——传统SWIFT汇款就像经济件，中间经过多个中间银行，可能要3-5个工作日；SWIFT GPI就像加急件，更快、更透明。今天来讲这个"快车道"。</p>
+<h2>一张图看懂</h2>
+<p>先说SWIFT。<strong>SWIFT（Society for Worldwide Interbank Financial Telecommunication，环球银行金融电讯协会）</strong>，简单说就是"全球银行之间发消息的系统"。银行之间转账不是直接把钱"飞"过去，而是通过SWIFT网络发送付款指令，资金通过代理行网络一层一层转移。</p>
+<p>传统SWIFT汇款的问题：</p>
+<ul><li>速度慢：经过多个中间银行，通常3-5个工作日</li><li>不透明：钱走到哪了？不知道。中间被扣了多少手续费？不清楚</li><li>费用不可控：每个中间银行都可能扣费</li></ul>
+<p><strong>SWIFT GPI（Global Payments Innovation）</strong>，就是SWIFT系统推出的"升级版"——你可以理解为跨境汇款的"加急通道"。</p>
+<p>它解决了三个问题：</p>
+<table><thead><tr><th>问题</th><th>传统SWIFT</th><th>SWIFT GPI</th></tr></thead><tbody><tr><td>速度</td><td>3-5个工作日</td><td>通常当天到账，很多几小时内</td></tr><tr><td>透明度</td><td>不知道走到哪了</td><td>全程可追踪，像查快递一样</td></tr><tr><td>费用</td><td>中间银行可能扣费，不可控</td><td>费用更透明，可预知</td></tr></tbody></table>
+<p>SWIFT GPI的"快递追踪"功能可能是最实用的。传统SWIFT汇款发出后，钱就像进了"黑箱"——你不知道到了哪一步，只能干等。SWIFT GPI让每一步都有记录，就像你查快递一样能看到"已发出→到达中转站→派送中→已签收"。</p>
+<p>现在全球主要银行大多已支持SWIFT GPI。如果你用香港的主要银行（汇丰、中银、渣打等）做跨境汇款，很可能已经在走GPI通道了——但具体是否启用，请以你的银行实际服务为准。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 728 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">你的银行</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">代理行A</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">代理行B</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="510.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">代理行C</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="598" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="656.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">收款银行</text>
+<line x1="572" y1="43.0" x2="592" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="diagram-wrapper"><svg viewBox="0 0 582 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">你的银行</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">代理行A</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">代理行B</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="510.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">收款银行</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="diagram-caption">▲ 传统SWIFT像经济快递——中转站多、不可追踪、慢。SWIFT GPI像加急快递——中转少、全程可追踪、快。每一步的状态都能看到，费用也更透明。从"黑箱"变成了"透明箱"。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>汇款前问银行是否走SWIFT GPI。</strong> 大部分主流银行已支持GPI，但不是所有汇款都默认走GPI通道。汇款时可以问一句"这笔汇款是否走GPI？"如果走，你可以获得追踪号码，随时查进度。</li><li><strong>SWIFT GPI仍然不是免费的。</strong> 虽然更快更透明，但跨境汇款的手续费依然存在——你的银行收一笔、中间银行可能收一笔、收款银行可能收一笔。GPI让你能看到被扣了多少，但不一定减少费用。具体费率请以银行报价为准。</li><li><strong>如果金额大且时间紧，考虑替代方案。</strong> SWIFT GPI虽然比传统SWIFT快，但如果你需要几小时内到账，一些专业跨境支付工具（如Wise、Airwallex的跨境转账）可能更快更便宜。对比不同方案的总成本和到账时间再决定。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>即使使用SWIFT GPI，跨境汇款仍需遵守相关国家的外汇管理和反洗钱规定。汇款用途必须真实合法，收款方信息必须准确。如果汇款触发了银行的风控系统（如金额异常、频繁汇款、收款方在高风险地区），即使走GPI通道也可能被延迟或拦截。请确保所有跨境汇款操作合法合规。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">SWIFT GPI是跨境汇款的"加急通道"——比传统SWIFT更快、全程可追踪、费用更透明，就像快递从"经济件"升级成"加急件"，大部分主流银行已支持，汇款时记得问一句是否走GPI通道。</div></div>
+    <div class="next-preview">明天 <strong>Day 56</strong>：为什么很多独立站卖家选择注册香港公司？<br>
+<a href="Day56-为什么很多独立站卖家选择注册香港公司.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

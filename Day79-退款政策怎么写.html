@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 79 · 退款政策怎么写？消费者权益保护要注意什么？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>退款政策怎么写？消费者权益保护要注意什么？</h1>
+      <div class="day">Day 79 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你去商场买衣服，收银台旁边一定会贴一张"退换货须知"：7天无理由退货、商品需保持原样、退款原路返回。这张纸不是贴着好看的，是法律要求商家必须明示的。你的独立站也需要这样一张"退换货须知"——它就是你的退款政策。</p>
+<h2>一张图看懂</h2>
+<p><strong>退款政策（Refund Policy）</strong>，是你向买家公开说明"什么情况可以退、怎么退、多久能收到钱"的规则文件。</p>
+<p>这不仅是服务承诺，在很多国家和地区，它是法律要求。如果你没有清晰的退款政策，或者政策内容违法，可能面临监管处罚和消费者诉讼。</p>
+<p>一个好的退款政策通常包含以下内容：</p>
+<table><thead><tr><th>要素</th><th>说明</th></tr></thead><tbody><tr><td>退款条件</td><td>什么情况可以退（质量问题、未收到货、不满意）</td></tr><tr><td>退款时限</td><td>下单后多少天内可以申请退款</td></tr><tr><td>退款方式</td><td>原路返回支付账户、店铺积分等</td></tr><tr><td>退货要求</td><td>商品是否需要寄回、谁承担运费</td></tr><tr><td>不可退款情况</td><td>定制商品、已拆封商品等（需合法合理）</td></tr><tr><td>处理时效</td><td>收到退款申请后多少天内处理</td></tr></tbody></table>
+<p>不同市场对消费者权益保护的要求不同：</p>
+<ul><li><strong>欧盟</strong>：消费者有14天无理由撤回权（远程销售），除非商品是定制或易腐坏的。</li><li><strong>美国</strong>：联邦贸易委员会（FTC）要求商家如实履行退款承诺，各州还有自己的消费者保护法。</li><li><strong>英国</strong>：消费者有权在14天内取消订单，商家应在14天内退款。</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 436 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">买家发起退款申请</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">商家审核</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="364.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">按退款方式原路退</text>
+<text x="364.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">回 / 不符合…</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>把退款政策放在网站显眼位置</strong>。放在网站底部导航栏、结账页面、订单确认邮件中。买家下单前能看到，减少事后纠纷。</li><li><strong>退款政策要具体，别写套话</strong>。"我们支持合理退款"这种话等于没说。要写清楚：几天内可以退、怎么申请、多久到账。越具体，纠纷越少。</li><li><strong>退款流程要顺畅</strong>。买家发起退款后，你能通过支付机构的后台一键操作退款。不要让买家等两周还没回应——退款处理慢，是消费者投诉的常见原因。</li><li><strong>主动退款优于争议</strong>。如果确实是你的问题（发错货、质量问题），主动退款比等买家发起信用卡争议（Chargeback）要好。争议一旦发生，不仅扣手续费，还影响你在支付机构那里的信誉。</li><li><strong>记录好沟通凭证</strong>。买家跟你的邮件、聊天记录、退款申请截图都留着。如果买家发起争议，这些是你举证的材料。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><p>退款政策中不得包含违反消费者保护法的条款，如"最终解释权归本店所有""一经售出概不退换"等。这类条款在多数国家法律中被视为无效条款，且可能被认定为欺诈行为。如果你的退款政策与目标市场法律冲突，可能面临监管处罚和消费者集体诉讼。请在制定退款政策前了解目标市场的消费者权益法律，必要时咨询专业律师。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">退款政策就是店里的"退换货须知"——规则写清楚、放在明面上，买家放心、卖家安心。</div></div>
+    <div class="next-preview">明天 <strong>Day 80</strong>：跨境电商的VAT是怎么回事？<br>
+<a href="Day80-跨境电商的VAT.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

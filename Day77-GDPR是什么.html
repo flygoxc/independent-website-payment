@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 77 · GDPR是什么？对独立站有什么影响？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>GDPR是什么？对独立站有什么影响？</h1>
+      <div class="day">Day 77 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你住的小区物业要登记你的信息：姓名、电话、车牌号。物业说这是为了管理需要，但你心里会想："我的信息你会不会泄露？我能不能要求你删掉？"这种对个人信息保护的意识，在欧洲被写成了一部非常严格的法律，叫GDPR。</p>
+<h2>一张图看懂</h2>
+<p><strong>GDPR（General Data Protection Regulation，通用数据保护条例）</strong>，是欧盟在2018年实施的个人信息保护法律，适用于所有处理欧盟居民个人数据的企业——不管你的公司注册在哪里。</p>
+<p>换句话说，你的独立站只要有欧盟买家访问、下单，你就在GDPR的管辖范围内。</p>
+<p>GDPR的核心原则可以简单概括为：</p>
+<table><thead><tr><th>原则</th><th>通俗解释</th></tr></thead><tbody><tr><td>合法、公平、透明</td><td>收集数据前必须告诉用户"我要收什么、用来干嘛"</td></tr><tr><td>目的限制</td><td>收了邮箱就只能用来发订单通知，不能偷偷拿去干别的</td></tr><tr><td>数据最小化</td><td>够用就行，别收集跟业务无关的信息</td></tr><tr><td>准确性</td><td>数据要准确，用户说要改就得改</td></tr><tr><td>存储限制</td><td>用户数据不能永久留着，用完就该删</td></tr><tr><td>安全性</td><td>要保护用户数据不被泄露或盗取</td></tr></tbody></table>
+<p>GDPR还给用户赋予了几个重要权利：知情权（知道你收集了什么数据）、访问权（要求看自己的数据）、删除权（要求你删掉他的数据）、可携带权（要求你把数据导出给他）。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 582 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">用户访问独立站</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">网站弹出Cook</text>
+<text x="218.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">ie提示</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">收集的数据仅用于</text>
+<text x="364.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">已说明用途</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="510.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">用户随时可要求查</text>
+<text x="510.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">看/删除自己的…</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>加一个隐私政策页面</strong>。你的独立站必须有专门的隐私政策页面，说明你收集哪些用户数据、用来做什么、第三方支付机构会接触哪些数据、用户如何行使自己的权利。网上有GDPR隐私政策模板，但建议根据自己实际情况修改，必要时请咨询专业律师。</li><li><strong>Cookie弹窗要加上</strong>。如果你的网站用了Google Analytics、Facebook Pixel等追踪工具，需要给用户一个Cookie同意弹窗，让用户选择是否接受。市面上有免费的Cookie同意工具可以集成到Shopify等平台。</li><li><strong>不要收集不必要的数据</strong>。结账页面只问必要的信息：姓名、地址、邮箱、电话。别加一堆"你从哪知道我们的""你的兴趣爱好"之类的问题——多收一份数据就多一份合规责任。</li><li><strong>做好用户数据删除机制</strong>。如果欧盟用户发邮件要求删除他的账户数据，你需要在合理时间内响应。确保你的系统能找到并删除某个用户的所有相关数据。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><p>GDPR的违规罚款非常严厉：最高可达2000万欧元或企业全球年营业额的4%（取较高者）。即使是小型独立站，如果被用户投诉并查实违规，也可能面临罚款。请认真对待用户数据保护义务，不要抱有"小网站不会被发现"的侥幸心理。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">GDPR就是欧洲版"个人信息保护法"——用户的数据用户做主，收了什么、用来干嘛、怎么删，都得交代清楚。</div></div>
+    <div class="next-preview">明天 <strong>Day 78</strong>：CCPA是什么？卖到加州要知道的隐私法<br>
+<a href="Day78-CCPA是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

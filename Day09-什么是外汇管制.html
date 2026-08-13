@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 9 · 什么是外汇管制？钱为什么不能随便转？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是外汇管制？钱为什么不能随便转？</h1>
+      <div class="day">Day 9 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>你开车出门，省内的高速随便上，交个过路费就到。可你要出省上国道，前面突然多了一个收费站，要登记、要检查、要交费；再往前，还有一道省界卡口，工作人员要看看你车上装的是什么、有没有手续。</p>
+<p>钱的"出省"，也有类似的关卡。</p>
+<h2>外汇管制</h2>
+<p><strong>外汇管制（Foreign Exchange Control，就是一个国家对本国外汇的流入流出、买卖兑换进行的管理和限制）</strong>。说白了，就是国家给"钱的出入境"设的收费站和卡口。</p>
+<p>为什么要有这个收费站？因为对任何一个国家来说，大量资金突然涌进涌出，都会冲击本国的汇率和经济稳定。国家管住外汇，就像高速公路管住车流——不是不让你走，是让你<strong>有规矩地走</strong>。</p>
+<p>中国内地是目前外汇管制比较严格的经济体，几个关键点：</p>
+<table><thead><tr><th>管什么</th><th>通俗理解</th><th>例子</th></tr></thead><tbody><tr><td>谁能换</td><td>换汇要有真实用途</td><td>个人每年有便利化额度（具体以最新政策为准），公司换汇要有贸易背景</td></tr><tr><td>能换多少</td><td>有金额门槛</td><td>超过一定金额要提供单据、走审批</td></tr><tr><td>往哪转</td><td>资金用途受限</td><td>外贸货款要报关单、合同等证明</td></tr><tr><td>走哪条路</td><td>必须走正规渠道</td><td>通过银行和持牌机构，不能走"地下钱庄"</td></tr></tbody></table>
+<p>香港和内地不同，香港实行自由港政策，资金进出相对自由，这也是很多内地商家选择在香港设公司收款的重要原因之一——<strong>收钱自由</strong>。但要注意，自由不代表"随便"：香港同样有反洗钱、反恐怖融资等监管，银行对大额、异常资金也会严查。</p>
+<p>有个词必须先记住：<strong>经常项目（Current Account，就是做生意赚的钱、付货款这些日常交易的资金往来）</strong>。你做独立站赚的货款，属于经常项目下的"货物贸易收汇"。跟它对应的还有"资本项目"（投资、借款等），这两个概念在合规上差别很大，经常项目相对好办，资本项目管制更严。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">一条高速路，路中间画三个关卡：第一道写着"真实性审查（这笔钱是不是做生意的钱）"，第二道写着"额度登记（超标的要填单子）"，第三道写着"正规银行通道（只能走持牌机构）"</div></div><div class="step"><div class="num">2</div><div class="txt">关卡上方的路牌写着"外汇管制"</div></div><div class="step"><div class="num">3</div><div class="txt">关卡下方的便道上，画一个偷偷绕路的小车，被交警拦住，旁边红字写着"地下钱庄 = 违法"</div></div></div></div>
+<div class="diagram-caption">▲ 外汇管制像高速收费站的组合拳——查身份（真实用途）、限流量（额度）、定路线（正规渠道）。想绕卡口走便道的，不仅违法，还可能人财两空。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>香港账户收钱相对自由，但"回内地"是另一个关卡</strong>：你在香港收美元、换成港币都没问题，但要把利润合规地拿回内地，要按内地的经常项目规定，提供贸易背景材料（合同、物流、报关单等），走银行正规渠道。建议提前把单据留齐全。</li><li><strong>公司名义收外汇比个人名义好办</strong>：你有香港公司、有真实贸易，走"货物贸易收付汇"是正当通道，比个人换汇额度更符合业务实际。</li><li><strong>付款也要合规</strong>：你用港币去付货款（比如付给内地供应商的人民币款），同样要走正规购汇/跨境渠道。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>外汇管理政策会调整，以上为一般性介绍，具体额度、要求请以国家外汇管理局等官方部门的最新规定为准，办理前咨询银行。</li><li>一定不要用"地下钱庄"、个人对敲（就是两个人私下约定互相打钱换汇）等方式转移资金，这属于违法行为，轻则资金被冻结，重则涉及刑事责任。</li><li>银行的合规审查越来越严，资料不真实、频繁大额快进快出，都可能触发账户风控。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">外汇管制是国家给"钱的出入境"设的收费站——不是不让走，而是要证明钱来路正、用途明、走正门；绕卡口的路，一条都不能走。 （预告：钱要进出关口，就得办"过境手续"——明天讲结汇和购汇这两个最常办的手续。）</div></div>
+    <div class="next-preview">明天 <strong>Day 10</strong>：什么是结汇？什么是购汇？<br>
+<a href="Day10-什么是结汇什么是购汇.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

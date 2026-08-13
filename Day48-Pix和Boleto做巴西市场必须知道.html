@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 48 · 独立站跨境支付100天 · Day 48：Pix和Boleto——做巴西市场必须知道的支付方式</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 48：Pix和Boleto——做巴西市场必须知道的支付方式</h1>
+      <div class="day">Day 48 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你如果做巴西市场，有件事必须知道：巴西的信用卡渗透率不高，而且就算有信用卡的人，很多也难以通过国际信用卡验证。那巴西人怎么网购？答案就是Pix和Boleto。不接这两个支付方式，巴西市场基本做不了。</p>
+<h2>一张图看懂</h2>
+<p><strong>Pix</strong>，是巴西央行在2020年推出的即时支付系统。你可以理解为"巴西版的扫码支付"——买家打开银行App，扫一个二维码（或输一个ID），几秒钟就付完了。免费、即时、24小时可用。</p>
+<p><strong>Boleto</strong>，是巴西的传统支付方式。它其实是一张"缴费单"——买家下单后系统生成一张Boleto单据（上面有条形码和编号），买家拿着这张单据去便利店、银行或用网银付款。你可以理解为"巴西版的现金缴费单"。</p>
+<table><thead><tr><th>对比项</th><th>Pix</th><th>Boleto</th></tr></thead><tbody><tr><td>付款方式</td><td>扫码/App转账</td><td>拿缴费单去便利店/银行/网银付</td></tr><tr><td>到账时间</td><td>几秒到几分钟</td><td>通常1-2个工作日</td></tr><tr><td>付款渠道</td><td>银行App</td><td>线下便利店、银行柜台、网银</td></tr><tr><td>费用</td><td>通常免费或极低</td><td>通常有少量固定费用</td></tr><tr><td>适合谁</td><td>有银行账户和智能手机的人</td><td>没有银行账户的人也能用</td></tr><tr><td>推出时间</td><td>2020年</td><td>1990年代</td></tr></tbody></table>
+<p>（以上信息基于公开资料，具体费用和到账时间请以支付机构实际报价为准。）</p>
+<p>为什么巴西市场特别需要这两个支付方式？</p>
+<p>巴西有一半以上的人没有信用卡，或者信用卡无法通过国际支付验证。Pix推出后迅速普及——到2023年，巴西有超过1.4亿人在用Pix，覆盖了大部分成年人口。Boleto则是"老牌国货"，适合没有银行账户的人——拿着单据去便利店付现金就行。</p>
+<p>对你的独立站来说：</p>
+<ul><li>接Pix → 覆盖有银行App的巴西买家（主流人群）</li><li>接Boleto → 覆盖没有银行账户的买家（下沉市场）</li><li>两个都接 → 基本覆盖所有巴西买家</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">巴西买家下单
+   |
+   ├── 选 Pix → 生成二维码 → 买家用银行App扫码 → 秒到账 → 发货
+   |            📱扫描付款
+   |
+   └── 选 Boleto → 生成缴费单（条形码+编号）
+                      |
+                      ├── 去便利店付现金
+                      ├── 去银行柜台付
+                      └── 用网银付
+                          |
+                          ↓
+                   1-2个工作日确认到账 → 发货</pre></div>
+<div class="diagram-caption">▲ Pix是"扫码秒付"，类似微信支付宝扫码；Boleto是"打印缴费单去付"，类似去便利店交电费。Pix快、新、主流；Boleto慢、老、但覆盖没有银行账户的人群。做巴西市场，两个都要接。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>Pix是巴西支付的首选。</strong> 如果你只能接一个，接Pix。它速度快、免费、普及率高，已经成为巴西网购最主要的支付方式之一。通过EBANX、dLocal等专注拉美市场的支付服务商可以接入。</li><li><strong>Boleto订单要等确认后再发货。</strong> Boleto的付款确认需要1-2个工作日，买家生成Boleto不等于已付款。一定要等系统确认收到付款后再发货，否则可能出现"买家没付钱但你已发货"的情况。</li><li><strong>注意Boleto的过期问题。</strong> Boleto通常有3-5天的有效期，过期未付就作废了。你的系统应该设置自动提醒，让买家在过期前完成付款。有些支付机构提供"Boleto自动续期"功能，请咨询你的支付服务商。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>巴西市场的支付欺诈率相对较高。Boleto付款虽然不可撤销，但可能存在"假Boleto"钓鱼欺诈——骗子伪造Boleto单据诱导买家付款到骗子账户。Pix付款也可能被用于社交工程诈骗。卖家需确保支付接口来自正规支付机构，并对异常订单保持警惕。巴西金融监管政策变化较快，请核实最新政策。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">Pix是巴西的"扫码支付"——秒到、免费、主流；Boleto是巴西的"现金缴费单"——覆盖无银行账户人群、1-2天确认。做巴西市场两个都要接，Pix优先，Boleto补充。</div></div>
+    <div class="next-preview">明天 <strong>Day 49</strong>：独立站跨境支付100天 · Day 49：Konbini、Alipay、WeChat Pay——亚洲支付方式一览<br>
+<a href="Day49-Konbini-Alipay-WeChatPay亚洲支付方式一览.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

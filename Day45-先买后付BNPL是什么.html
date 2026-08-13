@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 45 · 独立站跨境支付100天 · Day 45：先买后付（BNPL）是什么？Klarna、Afterpay怎么接入？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 45：先买后付（BNPL）是什么？Klarna、Afterpay怎么接入？</h1>
+      <div class="day">Day 45 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你在淘宝上买东西，"花呗"可以分期付款，先拿货后还钱，爽得很。海外也有类似的——Klarna、Afterpay，统称"先买后付"。越来越多的海外买家结账时想用这个方式。你独立站不接，可能就少了一单。</p>
+<h2>一张图看懂</h2>
+<p><strong>先买后付（Buy Now Pay Later，简称BNPL）</strong>，就是"先拿货，后付款"。买家下单时不用全额付款，分期付。但你卖家不用担心——BNPL公司会先把全款付给你，买家欠的是BNPL公司的钱。</p>
+<p>这就相当于"花呗"的国际版。买家分期还款，你一次性收款，风险由BNPL公司承担。</p>
+<p>主流BNPL平台：</p>
+<table><thead><tr><th>平台</th><th>总部</th><th>主要市场</th><th>典型分期方式</th></tr></thead><tbody><tr><td>Klarna</td><td>瑞典</td><td>欧洲、美国</td><td>"先收货后付款"或分4期免息</td></tr><tr><td>Afterpay（Clearpay）</td><td>澳大利亚</td><td>澳新、美国、英国</td><td>分4期，每两周付一次</td></tr><tr><td>Affirm</td><td>美国</td><td>美国</td><td>分3/6/12期，可能含利息</td></tr><tr><td>Zip</td><td>澳大利亚</td><td>多市场</td><td>分4期为主</td></tr></tbody></table>
+<p>（分期方式和费率因地区和合作方而异，请以实际条款为准。）</p>
+<p>BNPL对你卖家有什么好处？</p>
+<p><strong>第一，提高转化率。</strong> 买家看到"4期免息"，心理门槛大幅降低。本来犹豫要不要买的，一看可以分期，下单了。有数据显示BNPL能让转化率提升20%~30%——请以你的实际测试为准。</p>
+<p><strong>第二，提高客单价。</strong> 分期降低了"心疼感"，买家更愿意买贵一点的东西。比如从一件$50的T恤升级到$120的外套。</p>
+<p><strong>第三，你不用承担坏账风险。</strong> 买家不还钱是BNPL公司的问题，你的钱一分不少（在合规前提下）。</p>
+<p>代价是什么？BNPL的费率通常比信用卡高一点，因为BNPL公司替你承担了风险。具体费率请以实际报价为准。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">买家下单 $100（分4期，每期$25）
+   |
+   ├──→ BNPL公司：审核通过，先付你$100（扣手续费）
+   |
+   ├──→ 你：发货，收到全款（扣除BNPL手续费）
+   |
+   └──→ 买家：分期付给BNPL公司
+         第1期 $25（下单时）
+         第2期 $25（2周后）
+         第3期 $25（4周后）
+         第4期 $25（6周后）
+
+坏账风险？→ BNPL公司承担（不是你的事）</pre></div>
+<div class="diagram-caption">▲ BNPL就像一个"中间人"——买家分期付给它，它一次性付给你。你卖货收全款，风险由BNPL承担。对买家来说体验像"花呗"，对卖家来说就是多了一个能提升转化率的支付方式。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>根据目标市场选BNPL平台。</strong> 欧洲为主就接Klarna，澳美英为主就接Afterpay，美国为主可以加Affirm。不用全接，选你核心市场的。</li><li><strong>通过收单机构或聚合支付接入，省时省力。</strong> Stripe、Adyen等收单机构已经集成了主流BNPL，后台开通即可，不用单独和Klarna签合同。但费率可能和直接签约不同，请对比。</li><li><strong>BNPL特别适合中高客单价商品。</strong> 如果你的商品单价$30以下，BNPL分期意义不大；如果$80~$300之间，BNPL的效果最明显——正好是买家"想买但有点心疼"的价格区间。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>BNPL虽然由平台承担买家坏账风险，但如果你的退货率过高或买家大规模退款，BNPL平台可能限制或终止你的账户。此外，部分国家对BNPL行业的监管正在收紧（如英国、澳大利亚正在制定BNPL相关法规），接入前请了解目标市场的合规要求。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">BNPL就是"国际版花呗"——买家分期付、你收全款、风险BNPL公司担，能提升转化率和客单价，特别适合中高客单价商品，根据目标市场选Klarna或Afterpay接入即可。</div></div>
+    <div class="next-preview">明天 <strong>Day 46</strong>：独立站跨境支付100天 · Day 46：欧洲人不刷卡？SEPA和Faster Payments是什么？<br>
+<a href="Day46-欧洲人不刷卡SEPA和FasterPayments.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

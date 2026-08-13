@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 80 · 跨境电商的VAT是怎么回事？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>跨境电商的VAT是怎么回事？</h1>
+      <div class="day">Day 80 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你在国内买东西，价格标签上写"￥100"，你付100块就行。但在欧洲买东西，价签上写"€100"，结账的时候可能变成"€121"——多出来的21块就是VAT。如果你做欧洲市场的独立站，这笔税跟你直接相关。</p>
+<h2>一张图看懂</h2>
+<p><strong>VAT（Value Added Tax，增值税）</strong>，是欧洲大部分国家对商品和服务征收的消费税，类似于国内的增值税。</p>
+<p>对跨境电商来说，关键问题是：<strong>谁来交这个税？什么时候交？</strong></p>
+<p>2021年7月，欧盟实施了新的电商增值税规则，核心变化是：</p>
+<table><thead><tr><th>场景</th><th>旧规则</th><th>新规则</th></tr></thead><tbody><tr><td>从非欧盟国家寄到欧盟的小包裹（≤150欧元）</td><td>进口时免VAT</td><td>取消免税，必须在销售时收VAT</td></tr><tr><td>远程销售（欧盟内跨境）</td><td>有起征点，超过才注册</td><td>取消起征点，每单都要收</td></tr><tr><td>平台/独立站责任</td><td>买家自己交进口税</td><td>卖家/平台在销售时收VAT并申报</td></tr></tbody></table>
+<p>简单说，以前从中国寄到欧洲的小包裹（150欧元以下），是免VAT的，买家不用交税。现在不行了——卖家必须在结账时向买家收取VAT，然后按期申报缴纳给欧盟税务机关。</p>
+<p>增值税税率各国不同，举例来说（具体税率请以各国最新政策为准）：</p>
+<table><thead><tr><th>国家</th><th>标准VAT税率</th></tr></thead><tbody><tr><td>德国</td><td>19%</td></tr><tr><td>法国</td><td>20%</td></tr><tr><td>意大利</td><td>22%</td></tr><tr><td>西班牙</td><td>21%</td></tr><tr><td>荷兰</td><td>21%</td></tr></tbody></table>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 436 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">买家下单</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">独立站结账时自动</text>
+<text x="218.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#2c3338" font-family="sans-serif">加收VAT</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="364.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">卖家按期向欧盟税</text>
+<text x="364.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">务机关申报并缴…</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>在独立站上设置自动收税</strong>。Shopify等建站平台支持自动税费计算功能，根据买家所在国家自动在结账时加上对应的VAT。开启这个功能，你就不需要手动算每笔税了。</li><li><strong>注册欧盟VAT税号</strong>。根据新规，如果你向欧盟消费者销售商品，通常需要在一个欧盟国家注册VAT税号，通过IOSS（明天会讲）统一申报。具体注册要求和流程建议咨询税务顾问。</li><li><strong>把VAT算进定价策略</strong>。VAT是向买家收的，但你要确保含税价格在市场上有竞争力。比如你的产品不含税卖100欧元，德国买家实际要付119欧元。定价时要考虑这个因素。</li><li><strong>按时申报缴纳</strong>。VAT申报通常是按月或按季度，逾期不报会有罚款和滞纳金。建议设置日历提醒，或者委托专业的税务代理帮你处理。</li><li><strong>保留好交易记录</strong>。每笔交易的金额、VAT金额、买家所在国、申报记录，都要保存好。欧盟税务机关可能会抽查。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><p>不注册VAT税号、不收取VAT或收取后不申报缴纳，均属违法行为。欧盟税务机关有权追缴税款并加收罚款和滞纳金，严重的可能被列入失信名单，影响未来在欧盟市场的经营。此外，电商平台也有义务确保卖家VAT合规，不合规可能导致店铺被关闭。请务必了解并遵守目标市场的税务义务，必要时请咨询专业税务顾问。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">VAT就是欧洲版的"消费税"——卖家代收、按期申报，不交税的后果比你想的严重。</div></div>
+    <div class="next-preview">明天 <strong>Day 81</strong>：IOSS是什么？欧盟增值税新规怎么操作？<br>
+<a href="Day81-IOSS是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

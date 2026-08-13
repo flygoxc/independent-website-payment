@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 95 · 什么是分账？多卖家平台怎么分钱？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是分账？多卖家平台怎么分钱？</h1>
+      <div class="day">Day 95 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>小何做了一个多卖家的电商平台——自己不卖货，让其他商家在上面卖。生意起来了，但月底分钱的时候头大了：A商家卖了3万，B商家卖了2万，C商家卖了1万，平台抽成10%——该给每个商家分多少钱？自己一笔笔算、一笔笔转，累死了。</p>
+<p>这就像一个大型商场，几十个商户进场卖货，收银台统一收款，月底要按比例把钱分给每个商户。如果靠人工算，商户越多越容易出错。这时候就需要一个"自动分账"的机制。</p>
+<h2>一张图看懂</h2>
+<p><strong>分账（Split Payment）</strong>，就是一笔付款进来后，系统自动按预设比例把钱分给不同的收款方。</p>
+<p>打比方：买家在小何的平台上买了100美元的东西，是商家B的货。系统自动做三件事：</p>
+<ul><li>商家B分到90美元（90%）</li><li>平台小何分到8美元（8%佣金）</li><li>支付通道分到2美元（2%手续费，直接扣除）</li></ul>
+<p>买家只付了一次钱，系统在后台自动"切蛋糕"。</p>
+<p><strong>分账的两种主要方式：</strong></p>
+<table><thead><tr><th>分账方式</th><th>商场比喻</th><th>适用场景</th></tr></thead><tbody><tr><td>比例分账</td><td>按营业额抽成</td><td>平台抽佣模式</td></tr><tr><td>固定金额分账</td><td>固定租金+流水抽成</td><td>混合收费模式</td></tr></tbody></table>
+<p><strong>分账vs手动转账的区别：</strong></p>
+<p>手动转账：买家付100美元全到了平台账户，平台月底手动给商家转90美元。问题：钱在平台账户里放着，如果平台挪用了怎么办？商家不放心。</p>
+<p>分账：买家付100美元的瞬间，系统自动把90美元分到商家账户，8美元到平台账户。钱不过平台的手，安全透明。就像商场的收银台收完钱直接打到各商户账户，不经过商场财务中转。</p>
+<p><strong>为什么分账很重要？</strong></p>
+<ul><li><strong>合规要求</strong>：很多地区的金融法规要求平台不能"二清"（即先把钱全收到自己账户再分给商家），必须通过持牌机构做分账</li><li><strong>商家信任</strong>：钱自动到账，商家不用担心平台挪用资金</li><li><strong>效率高</strong>：不用人工算、人工转，几百个商家也能自动分</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">分账流程，像商场收银台的"自动分钱器"：
+
+买家付款 $100
+  │
+  ▼
+┌──────────────┐
+│  分账引擎     │
+│  (支付通道提供)│
+└──┬───┬───┬───┘
+   │   │   │
+   ▼   ▼   ▼
+商家B  平台   通道手续费
+$90    $8    $2
+(90%)  (8%)  (2%)
+  │     │
+  ▼     ▼
+商家账户 平台账户
+(即时)  (即时)</pre></div>
+<div class="diagram-caption">▲ 一笔钱进来，分账引擎像"切蛋糕"一样，按预设比例即时切分。每方直接拿到自己的那份，不需要经过中间人中转。就像商场收银台收完钱，系统自动把钱打到各商户账户里。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>如果你是多卖家平台，怎么接入分账？</strong></p>
+<p><strong>第1步：确认你的支付通道支持分账。</strong> Stripe有"Stripe Connect"，Airwallex也有分账功能，PayPal有"Marketplace"方案。选择一个适合你业务规模的。</p>
+<p><strong>第2步：为每个商家创建子账户。</strong> 在支付通道后台，每个入驻商家创建一个"Connected Account"（关联账户），就像在商场里给每个商户分配一个独立收银台。</p>
+<p><strong>第3步：设置分账规则。</strong> 比如平台抽佣10%，在系统里配置：每笔交易自动分90%给商家、8%给平台、2%为手续费。规则配好后，后续每笔交易自动执行。</p>
+<p><strong>第4步：做一次测试。</strong> 自己下一笔测试单，确认分账金额正确到账。特别是小数点——$99.99的10%是$9.999，实际怎么取整？通常通道会四舍五入，但你要确认清楚。</p>
+<p><strong>如果你不是平台，只是单卖家独立站：</strong> 那你暂时不需要分账功能。但如果你未来打算发展分销商或联盟营销（Affiliate），分账功能也能用上——自动给推荐人分佣金。</p>
+<p><strong>一个注意事项</strong>：分账规则配好后，一定要定期检查。如果某个商家的佣金比例变了，记得及时在系统里更新，否则会分错钱。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>"二清"（未经许可先收款再分给商家）在很多国家和地区属于违规金融行为，必须通过持牌支付机构做分账，请咨询法律顾问确认你的模式是否合规。</li><li>分账比例和规则必须在平台与商家的协议中明确约定，避免纠纷。</li><li>部分支付通道的分账功能可能需要额外资质审核，特别是涉及多商户资金归集的情况，请提前与通道确认要求。</li><li>跨境分账涉及不同国家的税务和外汇规定，建议咨询专业税务顾问，请核实最新政策。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">分账就像商场收银台自动分钱——买家付一次钱，系统按比例切给商家、平台和通道，不用人工中转，安全又高效。</div></div>
+    <div class="next-preview">明天 <strong>Day 96</strong>：什么是Webhook？支付回调是怎么回事？<br>
+<a href="Day96-Webhook支付回调是怎么回事.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

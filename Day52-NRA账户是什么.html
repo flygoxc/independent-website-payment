@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 52 · 独立站跨境支付100天 · Day 52：NRA账户是什么？内地公司收外汇用的</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 52：NRA账户是什么？内地公司收外汇用的</h1>
+      <div class="day">Day 52 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你的独立站用香港公司运营，但如果你的团队、供应商在内地，很多时候需要把钱汇回国内。这时候你可能会听到一个词——NRA账户。它是什么？和香港银行账户有什么不同？为什么有些内地公司用它收外汇？今天讲清楚。</p>
+<h2>一张图看懂</h2>
+<p><strong>NRA账户（Non-Resident Account，境外机构境内外汇账户）</strong>，简单说就是"境外公司在中国内地银行开的外汇账户"。</p>
+<p>把NRA账户理解成"境内银行的'外币专用账户'"。你的香港公司虽然注册在香港，但可以在中国内地的银行（如中行、工行、招行等）开一个外汇账户，用来收外币、付外币。</p>
+<p>它和普通账户的区别：</p>
+<table><thead><tr><th>对比项</th><th>内地公司普通外汇账户</th><th>NRA账户</th></tr></thead><tbody><tr><td>开户主体</td><td>内地注册公司</td><td>境外注册的公司（如香港公司）</td></tr><tr><td>开户银行</td><td>内地银行</td><td>内地银行</td></tr><tr><td>账户性质</td><td>境内机构外汇账户</td><td>境外机构境内外汇账户</td></tr><tr><td>资金来源</td><td>贸易项下收汇等</td><td>境外收汇</td></tr><tr><td>监管</td><td>较严格</td><td>更严格</td></tr><tr><td>能否结汇</td><td>可以</td><td>有限制，需审核</td></tr></tbody></table>
+<p>NRA账户的核心用途：</p>
+<ul><li>你的香港公司在内地银行开NRA账户</li><li>海外买家把钱汇到这个NRA账户</li><li>你再用这个账户的钱付给内地供应商（外币支付）</li><li>如果需要换成人民币，需要向银行提交真实性证明材料</li></ul>
+<p>为什么有人用NRA账户？</p>
+<p><strong>第一，方便付内地供应商。</strong> 你的香港公司收了外币，直接从NRA账户付给内地供应商的外汇账户，不用先汇到香港再汇回内地。</p>
+<p><strong>第二，不用频繁跨境汇款。</strong> 钱存在NRA账户里，需要用时直接付，减少跨境汇款次数和手续费。</p>
+<p><strong>第三，内地银行管理方便。</strong> 团队在内地，去内地银行办业务比飞香港方便。</p>
+<p>但NRA账户也有明显限制——结汇（把外币换人民币）比较麻烦，需要提供贸易背景真实性证明，且受外汇监管政策约束。具体政策请以国家外汇管理局最新规定为准。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">海外买家付款
+   |
+   ↓
+┌─────────────────────────────┐
+│  内地银行（如中国银行）        │
+│  ┌───────────────────────┐  │
+│  │  你的香港公司NRA账户    │  │
+│  │  （外币余额：$10,000）  │  │
+│  └───────────────────────┘  │
+│         |          |         │
+│         ↓          ↓         │
+│   付给内地供应商   结汇（需审核）
+│   （外币转账）     ↓
+│               人民币到内地公司账户
+└─────────────────────────────┘</pre></div>
+<div class="diagram-caption">▲ NRA账户开在内地银行里，但账户主体是你的香港公司。海外买家付的外币直接进这个账户。你可以用里面的外币付给内地供应商，也可以申请结汇成人民币——但结汇需要向银行提供贸易真实性材料，不是想换就能换。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>NRA账户适合"香港公司收外币、内地花"的场景。</strong> 如果你的供应商主要在内地，用NRA账户直接付外币给供应商，比绕道香港更省事省费。</li><li><strong>结汇是NRA账户的最大痛点。</strong> NRA账户里的外币想换成人民币，需要逐笔向银行提交真实性证明（合同、发票、报关单等），审核流程比较长。如果你的核心需求是"收外币后马上换人民币"，NRA可能不是最优选择。</li><li><strong>开户需要准备齐全的资料。</strong> 通常需要香港公司注册证书、商业登记证、公司章程、董事身份证明、业务说明等。不同银行要求可能不同，建议提前咨询目标银行的开户要求。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>NRA账户受中国外汇管理局严格监管。所有资金进出必须有真实的贸易背景，不得用于虚假贸易、非法换汇等用途。结汇需提供真实性证明材料。外汇管理政策可能随时调整，请以国家外汇管理局和开户银行的最新规定为准。不要通过NRA账户进行任何规避外汇监管的操作。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">NRA账户是境外公司（如你的香港公司）在内地银行开的外汇账户，方便收外币和付给内地供应商，但结汇审核严格，适合"收外币在内地花"的场景，具体操作请以最新外汇管理政策为准。</div></div>
+    <div class="next-preview">明天 <strong>Day 53</strong>：独立站跨境支付100天 · Day 53：FTN账户和OSA账户——离岸账户家族三兄弟<br>
+<a href="Day53-FTN账户和OSA账户离岸账户三兄弟.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

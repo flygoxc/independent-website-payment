@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 100 · 一张全景图看懂独立站跨境支付</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>一张全景图看懂独立站跨境支付</h1>
+      <div class="day">Day 100 / 100 · 阅读约 8 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>100天前，我们从一个问题开始："我是一家中国公司，在香港注册了公司，想做独立站卖货到海外，支付该怎么搞？"那时候，"支付通道""拒付""对账"这些词听起来像天书。100天后的今天，你已经能熟练地跟支付通道谈费率、排查支付成功率、做月度对账了。</p>
+<p>这就像你100天前连快递单都不会填，现在不仅能选最优快递线路，还能跟快递公司谈批量折扣、追踪丢件、做月度结算了。</p>
+<p>今天是这个系列的最后一篇，我们把100天的内容画成一张全景图，帮你把所有知识点串起来。</p>
+<h2>100天学了什么？</h2>
+<p>整个系列分为六个阶段，就像从"开店"到"成为老手"的六个台阶：</p>
+<h3>第一阶段（Day 1-15）：基础认知——搞懂"钱怎么走"</h3>
+<p>这个阶段解决的是"是什么"的问题。</p>
+<ul><li><strong>什么是跨境支付</strong>：钱从海外买家到你账户的完整路径——买家→支付通道→收单行→卡组织→发卡行→你的账户</li><li><strong>什么是独立站</strong>：你自己建的卖货网站，区别于亚马逊等第三方平台</li><li><strong>香港公司为什么适合做跨境支付</strong>：香港金融体系开放，开户和收款相对便利</li><li><strong>关键角色</strong>：收单机构、发卡行、卡组织（Visa/Mastercard）、支付网关各是干什么的</li></ul>
+<p><strong>比喻</strong>：这个阶段就像认识快递行业的各种角色——发货人、快递员、分拣中心、航空公司、收件人，搞清楚谁负责哪一段。</p>
+<h3>第二阶段（Day 16-30）：支付工具——认识"收银台"</h3>
+<p>这个阶段解决的是"用什么收钱"的问题。</p>
+<ul><li><strong>信用卡收单</strong>：最基础的支付方式</li><li><strong>PayPal</strong>：全球通用的电子钱包</li><li><strong>本地支付方式</strong>：不同国家客户习惯的支付工具（如欧洲的iDEAL、巴西的Boleto）</li><li><strong>Apple Pay/Google Pay</strong>：移动端一键支付</li><li><strong>3D Secure</strong>：支付时的二次身份验证</li></ul>
+<p><strong>比喻</strong>：这个阶段就像了解收银台上的各种工具——刷卡机、扫码枪、现金抽屉、电子钱包，知道每种怎么用。</p>
+<h3>第三阶段（Day 31-50）：费用与合规——搞清"收钱要花多少钱、守什么规矩"</h3>
+<p>这个阶段解决的是"成本和规则"的问题。</p>
+<ul><li><strong>收单费率</strong>：每笔交易通道收多少手续费</li><li><strong>interchange费</strong>：发卡行收的费用，是费率的大头</li><li><strong>跨境附加费</strong>：跨境交易多收的费用</li><li><strong>拒付与拒付率</strong>：买家"赖账"以及怎么应对</li><li><strong>PCI DSS合规</strong>：支付卡行业的数据安全标准</li><li><strong>税务基础</strong>：VAT、GST等跨境税务常识</li></ul>
+<p><strong>比喻</strong>：这个阶段就像搞清快递费由哪些组成（运费、燃油附加费、保价费），以及寄件要守什么规矩（禁寄物品、申报价值）。</p>
+<h3>第四阶段（Day 51-70）：资金流转——搞懂"钱怎么到账"</h3>
+<p>这个阶段解决的是"钱怎么从买家到你的银行账户"的问题。</p>
+<ul><li><strong>结算周期</strong>：通道多久把钱打给你</li><li><strong>提现到银行</strong>：从支付通道提钱到你银行账户</li><li><strong>多币种管理</strong>：收到不同货币的钱怎么处理</li><li><strong>外汇与汇率</strong>：换汇的成本和时机</li><li><strong>香港银行账户</strong>：怎么开户、怎么配合支付通道</li></ul>
+<p><strong>比喻</strong>：这个阶段就像搞清快递公司的结算流程——月结账单怎么出、款怎么打到你账上、跨国结算怎么处理。</p>
+<h3>第五阶段（Day 71-85）：技术与集成——搞定"网站怎么接支付"</h3>
+<p>这个阶段解决的是"技术上怎么实现"的问题。</p>
+<ul><li><strong>API对接</strong>：你的网站和支付通道怎么"对话"</li><li><strong>SDK与插件</strong>：不用从零开发，用现成的工具包</li><li><strong>支付页面设计基础</strong>：收银台长什么样</li><li><strong>测试环境（沙盒）</strong>：上线前先模拟测试</li><li><strong>安全与加密</strong>：怎么保证数据传输安全</li></ul>
+<p><strong>比喻</strong>：这个阶段就像在你的店里安装收银台系统——怎么布线、怎么接电、怎么测试扫码枪好不好使。</p>
+<h3>第六阶段（Day 86-100）：实操与进阶——"动手干活"</h3>
+<p>这个阶段是全系列最实操的部分：</p>
+<ul><li><strong>支付通道选择</strong>：Stripe/PayPal/Airwallex怎么选怎么搭</li><li><strong>降低费率</strong>：5个技巧把手续费降下来</li><li><strong>减少拒付</strong>：四道防线保护你的钱</li><li><strong>支付页面优化</strong>：提升转化率的设计技巧</li><li><strong>多币种定价</strong>：不同国家标不同价格</li><li><strong>智能路由</strong>：自动选最优支付通道</li><li><strong>支付成功率排查</strong>：成功率低时的一份排查清单</li><li><strong>对账</strong>：订单、通道、银行三方对账</li><li><strong>分账</strong>：多卖家平台怎么自动分钱</li><li><strong>Webhook</strong>：支付回调通知</li><li><strong>令牌化</strong>：用代号替代卡号更安全</li><li><strong>订阅制支付</strong>：定期自动扣款</li><li><strong>行业趋势</strong>：数字货币、稳定币、嵌入式金融</li></ul>
+<h2>全景示意图</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">独立站跨境支付100天全景图：
+
+┌─────────────────────────────────────────────────────────┐
+│              独立站跨境支付 · 全景路线图                    │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  阶段1（Day1-15）  基础认知                               │
+│  "钱怎么走" ──→ 收单行/卡组织/发卡行/网关                  │
+│                                                         │
+│  阶段2（Day16-30） 支付工具                               │
+│  "用什么收钱" ──→ 信用卡/PayPal/本地支付/移动支付           │
+│                                                         │
+│  阶段3（Day31-50） 费用与合规                             │
+│  "花多少/守规矩" ──→ 费率/拒付/PCI合规/税务               │
+│                                                         │
+│  阶段4（Day51-70） 资金流转                               │
+│  "钱怎么到账" ──→ 结算/提现/多币种/外汇/银行账户            │
+│                                                         │
+│  阶段5（Day71-85） 技术与集成                             │
+│  "怎么接支付" ──→ API/SDK/页面设计/测试/安全              │
+│                                                         │
+│  阶段6（Day86-100）实操与进阶                             │
+│  "动手干活" ──→ 通道选择/降费率/防拒付/优化转化/           │
+│                 多币种/智能路由/排查成功率/对账/           │
+│                 分账/Webhook/令牌化/订阅/趋势             │
+│                                                         │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  买家付款 → 支付通道 → 卡组织 → 发卡行                    │
+│      → 收单结算 → 你的银行账户 → 对账确认                  │
+│                                                         │
+│  全程关注：费率↓  成功率↑  拒付率↓  合规✓  转化率↑       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘</pre></div>
+<div class="diagram-caption">▲ 这张全景图就像一张地铁线路图——从"买家付款"到"钱到你的账户"，每一站都对应我们100天里学过的知识点。你现在可以沿着这条线，找到任何一个环节去复习。</div>
+<h2>给你的5条核心建议</h2>
+<p><strong>建议1：先跑起来，再优化。</strong> 不要一上来就追求"最优配置"——先用PayPal或Stripe把支付跑通，有订单有流水了再谈降费率、智能路由。就像先让快递能送到，再谈怎么送得更快更便宜。</p>
+<p><strong>建议2：永远备一个"备胎"通道。</strong> 只用一个支付通道风险太大——万一通道维护或封号，你的生意就停了。至少接入两个通道，做好备用。</p>
+<p><strong>建议3：每天关注三个数字。</strong> 支付成功率、拒付率、实际到账金额。这三个数字健康，你的支付系统就基本健康。哪个数字异常，就去查那个环节。</p>
+<p><strong>建议4：把对账变成习惯。</strong> 每月1-5号雷打不动对账。不对账的独立站，就像不对账的小卖部——钱少了都不知道。</p>
+<p><strong>建议5：合规是底线，不是加分项。</strong> PCI合规、税务合规、消费者保护——这些不是"做了更好"，是"不做可能出大事"。省什么钱都不能省合规的钱。</p>
+<div class="warning-box"><h3>风险提示</h3><ul><li>本文系列所有内容仅供参考，不构成任何法律、税务或投资建议。具体操作请咨询专业人士。</li><li>支付行业政策和费率变化频繁，文中涉及的数据和费率请以实际报价和最新政策为准。</li><li>跨境支付涉及多个国家和地区的法规，请根据你的实际业务情况，核实适用的法律和监管要求。</li><li>新技术和新支付方式（如数字货币、稳定币）的合规性因地区而异，采用前务必进行充分的合规评估。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">100天，从"不知道钱怎么走"到"能选通道、降费率、防拒付、做对账、管资金"——独立站跨境支付不神秘，就像搞懂快递物流一样，一步步来，你也能成为行家。</div></div>
+    <div class="next-preview"><strong>100 天完结！</strong>你已经看完了整个跨境支付系列。<br>回顾你的 100 天，你已经能独立处理费率、拒付、对账这些事了。</div>
+  </div>
+</div>
+</body>
+</html>

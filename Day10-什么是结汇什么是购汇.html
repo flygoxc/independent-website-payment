@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 10 · 什么是结汇？什么是购汇？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是结汇？什么是购汇？</h1>
+      <div class="day">Day 10 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>你办签证出国玩，出发前在国内银行把人民币换成美元——这是<strong>购汇</strong>；回国后，兜里剩下的美元又拿到银行换回人民币——这是<strong>结汇</strong>。一个出去，一个回来，方向正好相反，但都是"换钱"，只是名字不一样。</p>
+<p>做独立站生意的你，这两个词每天都会碰到，今天一次讲清。</p>
+<h2>结汇与购汇</h2>
+<p><strong>结汇（Surrender of Foreign Exchange，把外币卖给银行、换成人民币）</strong>。"结"是"了结"的意思，外币在你手上"了结"了，换成了本币。对独立站卖家来说，最典型的场景：你香港账户里收到一笔美元货款，决定换成港币或人民币用来经营——这个动作就是结汇。站在银行的角度，是"银行买你的外币"。</p>
+<p><strong>购汇（Purchase of Foreign Exchange，用本币向银行购买外币）</strong>。"购"就是购买，你拿人民币（或港币）去买美元。典型场景：你要付给海外供应商美元货款，就得先用港币/人民币"购汇"变成美元再付出去。站在银行的角度，是"银行卖外币给你"。</p>
+<p>两个方向一表看清：</p>
+<table><thead><tr><th></th><th>结汇</th><th>购汇</th></tr></thead><tbody><tr><td>动作</td><td>外币 → 本币</td><td>本币 → 外币</td></tr><tr><td>比喻</td><td>回国后把美元换回人民币</td><td>出发前把人民币换成美元</td></tr><tr><td>你的角色</td><td>卖外币的人</td><td>买外币的人</td></tr><tr><td>银行按哪个价</td><td>银行"买入价"收你的外币</td><td>银行"卖出价"卖外币给你</td></tr><tr><td>典型场景</td><td>收到货款后兑换成经营货币</td><td>支付海外供应商货款</td></tr></tbody></table>
+<p>注意：Day 7 讲过，<strong>银行永远是"低买高卖"</strong>。你结汇（卖外币给银行）用买入价，购汇（从银行买外币）用卖出价，不管哪个方向，价差都偏向银行——这是规矩，不是坑你，提前算好就行。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 290 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">左边路牌"结汇</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="218.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">一个人推着"美元</text>
+<text x="218.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">"走进银行柜台</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="diagram-caption">▲ 结汇和购汇是同一条马路上的两个方向——你往外币方向走是购汇，往本币方向走是结汇；不管哪个方向，都得经过银行这把"剪刀"（价差）。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>收到货款后，"结还是不结、何时结"是门手艺</strong>：美元收进来，可以先存在多币种账户里（观望汇率），也可以及时结汇保证现金流。没有标准答案，看你对汇率的判断和资金需求。</li><li><strong>付款前先算"购汇成本"</strong>：付海外供应商货款前，把卖出价、手续费算进成本里，报价时心里才有底。</li><li><strong>单据要跟"方向"匹配</strong>：结汇的货款要有对应的贸易记录（订单、物流），购汇付款要有对应的合同，银行审单时能讲清楚"这笔钱是干嘛的"，才能顺利通过。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>结汇/购汇都必须在正规银行或持牌机构办理，个人和公司都别超过规定额度或绕开真实性审核。</li><li>千万别为图方便，把公司货款用个人账户换汇或收付，这样既不合规，也容易引来税务和监管麻烦。</li><li>汇率波动方向难测，本文不构成汇率走势判断，实际操作请结合自身情况并咨询专业机构，具体额度请核实最新政策。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">结汇是把外币"了结"成本币（卖外币给银行），购汇是拿本币"买"外币——一个回来一个出去，都要按银行买入、卖出价走，方向记牢就不乱。 （预告：钱要跨国走，银行之间靠什么"传话"？明天讲大名鼎鼎的 SWIFT。）</div></div>
+    <div class="next-preview">明天 <strong>Day 11</strong>：SWIFT是什么？为什么跨境转账总提到它？<br>
+<a href="Day11-SWIFT是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

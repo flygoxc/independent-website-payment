@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 91 · 多币种定价怎么做？汇率波动怎么管理？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>多币种定价怎么做？汇率波动怎么管理？</h1>
+      <div class="day">Day 91 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>老赵卖一款手工皮包，定价99美元。美国客户付99美元，挺好。但英国客户一看："怎么是美元？我只想看英镑啊。"德国客户也犯嘀咕："欧元多少钱？"老赵心想："我就标一个美元价不就行了？"结果英国客户因为不想自己算汇率，直接走了。</p>
+<p>这就像你去国外旅游，商店只标当地货币的价格，你一边算汇率一边排队，后面人催你，你干脆不买了。多币种定价，就是让你的独立站"入乡随俗"，给不同国家的客户显示他们熟悉的货币价格。</p>
+<h2>一张图看懂</h2>
+<p><strong>多币种定价（Multi-Currency Pricing，简称MCP）</strong>，就是同一个商品，对不同国家的客户显示不同的货币价格。比如一个手机壳：美国客户看到$19.99，英国客户看到£16.99，德国客户看到€18.99。</p>
+<p>听起来简单，但有两个关键问题要解决：</p>
+<p><strong>问题1：汇率用哪个？</strong></p>
+<p>你不能每天手动改价格——汇率天天变，今天1美元换0.79英镑，明天可能换0.81英镑。一般做法是：</p>
+<table><thead><tr><th>汇率策略</th><th>快递比喻</th><th>优缺点</th></tr></thead><tbody><tr><td>实时汇率</td><td>按当天油价算运费</td><td>公平，但价格天天变</td></tr><tr><td>定期固定汇率</td><td>每月定一次运费</td><td>简单，但可能有汇率损失</td></tr><tr><td>含缓冲的汇率</td><td>运费多收5%防油价涨</td><td>稳妥，但客户可能觉得贵</td></tr></tbody></table>
+<p><strong>推荐做法</strong>：用"含缓冲的固定汇率"——每周或每月更新一次，在实时汇率基础上加2%-3%的缓冲。这样既不用天天改价，又能覆盖汇率波动的风险。</p>
+<p><strong>问题2：谁来承担汇率风险？</strong></p>
+<p>如果美元突然升值，你标好的英镑价格可能就不够覆盖成本了。应对方法：</p>
+<ul><li>在定价时留出3%-5%的汇率缓冲空间</li><li>使用支付通道的多币种结算功能，让通道帮你处理汇率转换</li><li>定期（比如每月）检查各币种定价是否还合理</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">多币种定价的工作流程：
+
+商品基础价：$19.99（美元）
+         │
+    ┌────┴────┬─────────┬──────────┐
+    ▼         ▼         ▼          ▼
+美国客户    英国客户   德国客户    日本客户
+$19.99     £16.99    €18.99    ¥2,200
+（原价）   （汇率+    （汇率+    （汇率+
+            缓冲）     缓冲）     缓冲）
+    │         │         │          │
+    └────┬────┴─────────┴──────────┘
+         ▼
+    支付通道统一结算
+    转为美元入账</pre></div>
+<div class="diagram-caption">▲ 基础价用美元定，各市场加汇率缓冲后展示。买家用本国货币付款，支付通道在后台完成结算。就像连锁快餐店在不同国家卖不同价格的汉堡，但总部统一用美元算账。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>具体怎么做？四步搞定：</strong></p>
+<p><strong>第1步：确定基础货币和目标币种。</strong> 你是香港公司，基础货币可以用美元（跨境最通用）。目标币种根据你的主要市场定——通常前5个就够了：美元、欧元、英镑、加元、澳元。</p>
+<p><strong>第2步：用工具自动转换。</strong> Shopify自带的"多币种"功能，或第三方的货币切换插件，可以自动根据买家IP显示对应货币。设置时加2%-3%的缓冲，别用纯实时汇率。</p>
+<p><strong>第3步：本地化定价，不要纯汇率转换。</strong> 99美元直接转成英镑是£78左右，但英国消费者心理价位可能是£79.99或£85。把价格"微调"到符合当地习惯的数字（以.99结尾），转化率更高。</p>
+<p><strong>第4步：每月检查一次汇率偏移。</strong> 如果某币种的实际汇率和你定价时差了5%以上，就该调整了。做个简单的Excel表，每月记录各币种的"定价汇率"和"实际汇率"，一目了然。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>多币种定价涉及外汇风险，汇率波动可能侵蚀利润，建议预留足够的缓冲空间。</li><li>某些国家对商品定价有法规要求（如必须含税标价），请核实目标市场的相关规定。</li><li>如果买家付款时的汇率和你展示时的汇率有差异，可能出现"多收"或"少收"的情况，需在条款中说明以实际扣款金额为准。</li><li>香港公司做多币种结算，需确认银行账户和支付通道支持对应币种的收款和结汇，具体请咨询你的开户行。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">多币种定价就像不同国家的商场标不同的价——加个汇率缓冲、定期检查偏移、让买家看到熟悉的货币，转化率自然就上去了。</div></div>
+    <div class="next-preview">明天 <strong>Day 92</strong>：什么是智能路由？为什么它能提升支付成功率？<br>
+<a href="Day92-智能路由提升支付成功率.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

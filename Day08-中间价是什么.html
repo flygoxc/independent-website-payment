@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 8 · 中间价是什么？银行怎么给你报价？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>中间价是什么？银行怎么给你报价？</h1>
+      <div class="day">Day 8 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>菜市场的土豆有三个价：菜农大批量卖给商贩，一块钱一斤（批发价）；商贩卖给你，一块五一斤（零售价）；你问"今天土豆行情"，邻居老张说"大概一块二吧"（行情价/指导价）。</p>
+<p>汇率世界也有这样三个价，今天一次讲清。</p>
+<h2>中间价、现汇买入价、现汇卖出价</h2>
+<p><strong>中间价（Mid Rate）</strong>，你可以理解为"市场行情价"，是银行之间大量批发买卖外汇时的一个基准价。它不是谁拍脑袋定的，而是每天根据市场行情综合出来的，你可以把它当成"土豆行情一块二"。</p>
+<p><strong>现汇买入价 / 现汇卖出价</strong>，这才是你真正会碰到的两个价：</p>
+<ul><li><strong>现汇（Foreign Exchange in Cashless Form，就是存在账户里的外币，比如你香港账户里的美元）</strong>，对应还有"现钞"（手里拿的现金纸币）。对做电商的你来说，主要打交道的是现汇。</li><li><strong>现汇买入价（Bank's Buying Rate for Telegraphic Transfer，银行买你的外币存款给的价格）</strong>：这是"零售价"，银行从你手里买美元，给的价格比中间价低一点点。</li><li><strong>现汇卖出价（Bank's Selling Rate，银行卖外币给你收的价格）</strong>：这也是"零售价"，银行卖美元给你，收的价格比中间价高一点点。</li></ul>
+<p>三个价的关系，正好比土豆：</p>
+<table><thead><tr><th>名称</th><th>土豆比喻</th><th>谁用</th></tr></thead><tbody><tr><td>中间价</td><td>行情价（一块二）</td><td>银行之间批发、记账基准</td></tr><tr><td>现汇买入价</td><td>商贩收你的价</td><td>你把美元卖回给银行时</td></tr><tr><td>现汇卖出价</td><td>商贩卖你的价</td><td>你拿人民币/港币买美元时</td></tr></tbody></table>
+<p>为什么银行要"低买高卖"？因为银行也是做生意——它承担汇率波动的风险、提供柜台和服务，赚的就是中间价和零售价之间的这点差价，跟菜贩子一个道理。</p>
+<p>特别注意：<strong>中间价 ≠ 你换汇的价格</strong>。中间价是"基准"，你实际成交永远按"买入价"或"卖出价"算。有些广告说"按央行中间价换汇"，基本不可能，那等于让银行白干。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">一个菜市场摊位，摊位上方挂一块牌子："今日美元汇率"</div></div><div class="step"><div class="num">2</div><div class="txt">牌子正中写着"中间价 7.82（行情价）"，左侧写着"现汇买入 7.80（商贩收你的）"，右侧写着"现汇卖出 7.84（商贩卖你的）"</div></div><div class="step"><div class="num">3</div><div class="txt">摊位下面三筐土豆，分别贴着这三个价签</div></div></div></div>
+<div class="diagram-caption">▲ 中间价在中间当"公平秤"，买入卖出两个价像两个托盘，一个低一个高，中间的落差就是银行的利润空间——你换汇的每一笔，都落在这两个零售价上，而不是落在中间的行情价上。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>对账时用"中间价"看行情，用"买入价"算实际到手</strong>：月底看结算单，服务商给你用的是哪个价，心里要有数，两者差出来的就是你的换汇成本。</li><li><strong>大额资金可分批次换</strong>：汇率天天变，一次性全换可能赶上一个差日子。分批换汇（也叫"分批结汇"）可以摊平波动，但要结合自己的现金流需求来安排。</li><li><strong>关注"中间价"的每日变化</strong>：中间价能反映市场大方向，长期关注，能在汇率相对有利的时候安排结汇和购汇（Day 10 讲）。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>中间价每天调整，各银行报价可能略有差异，请以各银行当日实际挂牌价为准。</li><li>有的服务商报的"优惠汇率"其实是把买入卖出价做得更宽（价差更大），看起来低手续费，实际汇率成本更高，要算总账。</li><li>任何承诺"锁定超低汇率"的非持牌机构都要警惕，正规锁汇工具（远期结售汇等）都有门槛和规则，请咨询持牌机构并核实最新政策。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">中间价是"行情价"，现汇买入价和卖出价是银行给你的"零售价"——你换汇永远按零售价成交，中间的价差就是银行赚的钱。 （预告：钱换好了，为什么不能随便转回内地？明天讲外汇管制。）</div></div>
+    <div class="next-preview">明天 <strong>Day 9</strong>：什么是外汇管制？钱为什么不能随便转？<br>
+<a href="Day09-什么是外汇管制.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

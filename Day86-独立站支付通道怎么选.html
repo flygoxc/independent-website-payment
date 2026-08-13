@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 86 · 独立站支付通道怎么选？一张决策图帮你搞定</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站支付通道怎么选？一张决策图帮你搞定</h1>
+      <div class="day">Day 86 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>老王开了一家卖手机壳的独立站，主要客户在欧美。上个月他随便选了个支付通道，结果发现：有的客户用信用卡付不了款，有的客户嫌支付页面跳来跳去直接放弃了，月底一算账，手续费还特别高。老王叹了口气："选个支付通道，比选快递公司还头疼。"</p>
+<p>其实，选支付通道就跟选快递公司一样——没有最好的，只有最合适的。今天我们就来聊聊，怎么像挑快递公司一样，挑到适合你的支付通道。</p>
+<h2>一张图看懂</h2>
+<p><strong>支付通道（Payment Gateway）</strong>，说白了就是"帮你收钱的管道"。买家在你网站上下单付钱，钱不是直接到你口袋里的，中间要经过一条"管道"——这就是支付通道。</p>
+<p>打个比方，你在淘宝上卖东西，发货得找快递公司吧？顺丰快但贵，圆通便宜但慢，EMS哪都能到但服务一般。支付通道也是一样，每家都有自己的特点。</p>
+<p>选支付通道，主要看这五个方面：</p>
+<table><thead><tr><th>对比项</th><th>说明（快递比喻）</th><th>实际含义</th></tr></thead><tbody><tr><td>支持的卡种</td><td>能送到哪些地方</td><td>支持Visa、Mastercard、AmEx等</td></tr><tr><td>费率</td><td>运费多少钱</td><td>每笔交易收多少手续费</td></tr><tr><td>到账周期</td><td>多久能送到</td><td>钱多久能到你账户</td></tr><tr><td>成功率</td><td>妥投率有多高</td><td>买家付款的成功比例</td></tr><tr><td>接入难度</td><td>下单麻不麻烦</td><td>技术对接复不复杂</td></tr></tbody></table>
+<p><strong>决策流程很简单，就三步：</strong></p>
+<ol><li><strong>你卖到哪？</strong> → 决定了你需要支持哪些卡种和本地支付方式</li><li><strong>你每月流水多少？</strong> → 决定了你能承受多高的费率</li><li><strong>你技术能力怎样？</strong> → 决定了你选"开箱即用"还是"自己对接"</li></ol>
+<p>举个例子：你刚起步，月流水不到1万美元，客户主要在美国——那就先选一个接入简单、支持主流卡种的通道，费率高一点没关系，先把生意跑起来。等流水大了，再考虑费率更低的方案。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">一张支付通道选择决策图，从左到右分成三个步骤：
+
+&gt; 第一步"你卖到哪？"→ 第二步"月流水多少？"→ 第三步"技术能力？"→ 最终推荐方案
+
+你卖到哪？        月流水多少？      技术能力？        推荐
+                                       
+欧美为主    ──→  1万美元以下  ──→  不想写代码  ──→  Stripe/PayPal
+欧美为主    ──→  5万美元以上  ──→  有技术团队  ──→  Airwallex+多通道
+东南亚为主  ──→  任意          ──→  任意          ──→  本地支付+国际通道
+全球都有    ──→  任意          ──→  有技术团队  ──→  多通道组合</pre></div>
+<div class="diagram-caption">▲ 这不是唯一答案，但能帮你快速缩小选择范围。就像查快递时效表一样，先看看自己的需求落在哪个格子里。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p>具体怎么做？三步走：</p>
+<p><strong>第一步：列出你的需求清单。</strong> 拿张纸写下：你的目标市场是哪些国家？客户最常用的支付方式是什么？你的月流水大概是多少？你有没有自己的技术团队？</p>
+<p><strong>第二步：选2-3个候选通道，做对比。</strong> 不要只看费率，还要看：是否支持你目标市场的本地支付方式？到账周期是几天？有没有月费、提现费等隐藏费用？客服响应速度怎么样？</p>
+<p><strong>第三步：小批量测试。</strong> 不要一上来就把全部订单都压到一个通道上。可以先接入一个主力通道，再备一个备用通道。跑一个月看看实际成功率和费率，再决定是否调整。</p>
+<p><strong>一个实用建议</strong>：起步阶段，建议先用Stripe或PayPal这种"开箱即用"的方案，不用写太多代码，插件一装就能用。等流水起来后，再考虑接入Airwallex这类费率更优的方案。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>不同通道对业务类型有要求，有些品类（如电子烟、保健品）可能被拒接，接入前务必确认你的品类是否在支持范围内。</li><li>费率会随政策和流水变化，签约前看清楚合同里的费率调整条款，具体费率请以实际报价为准。</li><li>不要把所有鸡蛋放一个篮子里——只用一个通道有风险，万一通道临时维护或封号，你的生意就停了。建议至少备一个备用通道。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">选支付通道就像选快递公司：先搞清自己的需求，再小批量试跑，别一上来就"押宝"在一个通道上。</div></div>
+    <div class="next-preview">明天 <strong>Day 87</strong>：Stripe、PayPal、Airwallex大对比，哪个适合你？<br>
+<a href="Day87-Stripe-PayPal-Airwallex大对比.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 12 · IBAN、BIC、SWIFT Code——这些编号都是什么意思？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>IBAN、BIC、SWIFT Code——这些编号都是什么意思？</h1>
+      <div class="day">Day 12 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>你给外地朋友打电话，先拨区号（010、021），再拨手机号。少了区号，电话打到别的城市；少了号码，根本打不通。银行账户跨国转账也一样：既要"区号"找对银行，又要"号码"找对账户，漏一个，钱就到不了。</p>
+<p>今天把这些号码逐个拆开看明白。</p>
+<h2>三个号码分别是什么</h2>
+<p>跨境转账时，对方可能会问你要一串英文缩写：BIC、SWIFT Code、IBAN。别被绕晕，它们其实就三类：</p>
+<p><strong>1. SWIFT Code / BIC（银行识别码，Bank Identifier Code，就是识别"哪家银行"的代码）</strong></p>
+<ul><li>通常是 8 或 11 位字母数字，比如 HSBCHKHHXXX。</li><li>它的作用＝<strong>区号</strong>：告诉系统"这笔钱要送到哪家银行"。</li><li>注意：<strong>SWIFT Code 和 BIC 是同一个东西</strong>，只是叫法不同，就像"土豆"和"马铃薯"。</li></ul>
+<p><strong>2. IBAN（国际银行账号，International Bank Account Number，国际统一的银行账号格式）</strong></p>
+<ul><li>通常是字母+数字组成的串，比如欧洲国家常见。</li><li>它的作用＝<strong>手机号</strong>：在区号基础上精确到"哪个客户账户"。</li><li>注意：<strong>不是所有国家都用 IBAN</strong>。欧洲、中东许多国家强制要求，美国、中国内地、中国香港地区一般不用 IBAN，而是用普通账号。所以对方要 IBAN，你就提供 IBAN；对方要账号，就提供账号。</li></ul>
+<p><strong>3. 账号（Account Number）</strong></p>
+<ul><li>你在银行开的那个账户号码，作用同样＝手机号，只是格式不统一。</li></ul>
+<p>三个号码的配合，就是一套"国际转账地址"：</p>
+<table><thead><tr><th>号码</th><th>好比</th><th>作用</th><th>谁提供</th></tr></thead><tbody><tr><td>SWIFT Code / BIC</td><td>区号</td><td>锁定银行</td><td>银行官网可查</td></tr><tr><td>IBAN</td><td>标准格式手机号</td><td>锁定账户（部分地区）</td><td>银行账单上</td></tr><tr><td>账号</td><td>普通手机号</td><td>锁定账户</td><td>你开户后获得</td></tr></tbody></table>
+<p>再补一个高频词：<strong>收款行（Beneficiary Bank，就是收钱的账户所在的那家银行）</strong>。填汇款单时，"Beneficiary"（收款人）一栏要填收款人名称、账号、开户行 BIC 和开户行地址，这四样齐全，汇款才不容易被退。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">画一封"汇款单信封"，地址栏从上到下分四行：第一行"收款人：你的公司名"</div></div><div class="step"><div class="num">2</div><div class="txt">第二行"收款银行：香港XX银行"</div></div><div class="step"><div class="num">3</div><div class="txt">第三行"BIC（区号）：HSBCHKHHXXX"</div></div><div class="step"><div class="num">4</div><div class="txt">第四行"账号（手机号）：123-456-789"</div></div><div class="step"><div class="num">5</div><div class="txt">信封右下角画一个放大镜，旁边标注"IBAN：欧洲国家的特殊账号格式，美国/香港一般不用"</div></div></div></div>
+<div class="diagram-caption">▲ 一封完整的"汇款地址"＝收款人＋银行＋BIC（区号）＋账号（手机号）。IBAN 只是部分地区账号的标准格式，别强求所有国家都有。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>把收款信息做成"名片"</strong>：把公司的 BIC、账号、收款行名和地址整理成一张标准图/文本，客户要付款时直接发，避免每次现找、现抄错。</li><li><strong>收到欧洲客户付款，注意 IBAN</strong>：欧洲客户付款常要 IBAN；香港账户通常没有 IBAN，可跟银行确认是否提供等效信息，或建议客户按 SWIFT 方式付款。</li><li><strong>信息要一字不差</strong>：BIC 里一个字母错、账号少一位，钱就可能卡在中转行。付款前对照银行账单逐字核对，实在不放心，可以先转一笔小额测试。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>收款信息（尤其 BIC、账号）属于敏感信息，只在真实交易场景提供给对方，谨防被骗子利用（比如骗子让你把货款转到"改过的"账号）。</li><li>如果有人以"账号填错需要先交钱解冻"为由让你追加转账，一律是诈骗。</li><li>开户时银行会发给你完整的收款信息清单，一切以你开户行的官方资料为准，不要相信第三方提供的"你的账号信息"。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">BIC 是"区号"（找银行），账号或 IBAN 是"手机号"（找账户）——跨境收款就是把这两个号填对，像写一封地址完整的国际信件。 （预告：信息传到了、号码填对了，钱是怎么"对账"又怎么"到账"的？明天讲清算和结算。）</div></div>
+    <div class="next-preview">明天 <strong>Day 13</strong>："清算"和"结算"，一字之差要分清<br>
+<a href="Day13-清算和结算一字之差要分清.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

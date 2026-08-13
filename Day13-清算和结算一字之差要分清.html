@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 13 · "清算"和"结算"，一字之差要分清</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>"清算"和"结算"，一字之差要分清</h1>
+      <div class="day">Day 13 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>月底了，你拿着账本和供应商对账：这个月你卖了1200件T恤，应收6万美元；其中退货80件，应扣4000美元；算下来该付你5.6万美元。你俩反复核对、互相确认——这只是"算清楚"。</p>
+<p>真正让那5.6万美元从供应商账户转到你账户的，是另一件事。算账和给钱，是两个动作，也正是今天要讲的两个词。</p>
+<h2>清算与结算</h2>
+<p><strong>清算（Clearing，就是银行之间先"算账对账"，把互相欠的钱一笔笔核对清楚、算出一个净额）</strong>。</p>
+<p>生活化理解：你和小区的另外两家店，这个月互相有生意往来。月底三人凑一起，把谁欠谁多少、抵掉重复的部分，最后算出"就剩这户欠那户一笔净款"。这个"凑一起算账"的过程，就是清算。清算的核心是<strong>算清楚、对得上</strong>，但此时钱还没有真正移动。</p>
+<p><strong>结算（Settlement，就是按照算好的净额，真正把资金转移到位）</strong>。</p>
+<p>生活化理解：账算好了，最后那笔净款，真正从付款方账户划到收款方账户，双方账上的余额真实变动——这个"钱真正到位"的动作，才是结算。结算的核心是<strong>钱真的到了</strong>。</p>
+<p>打个最通俗的比方：</p>
+<table><thead><tr><th></th><th>清算</th><th>结算</th></tr></thead><tbody><tr><td>通俗说法</td><td>对账算账</td><td>真金白银到位</td></tr><tr><td>钱的形态</td><td>还是"账上的数字"</td><td>变成"账户里真正可用的钱"</td></tr><tr><td>谁来完成</td><td>清算系统（对信息）</td><td>资金划拨系统（动钱）</td></tr><tr><td>顺序</td><td>先</td><td>后</td></tr></tbody></table>
+<p>在跨境支付里，完整的流程通常是：<strong>交易发生 → 信息汇总 → 清算（各家银行算清互相的净欠款）→ 结算（通过中央银行或代理行账户把净额划转）→ 到账</strong>。所以你会看到"清算完成"但钱还没到，或者"状态显示结算中"——因为它们本来就是两步。</p>
+<p>再强调一次顺序：<strong>先清算，后结算</strong>。你可以在脑子里竖一块牌子：清算＝"算清楚"，结算＝"给到位"。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 290 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">两个房间之间画一</text>
+<text x="72.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">条箭头：先清算</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">后结算</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="diagram-caption">▲ 清算室里大家"把账算清"，结算室里"把钱给到位"——中间那扇门，就是"从数字变成真钱"的分界线。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>看结算状态不焦虑</strong>：收到支付服务商的"清算中"通知时，别以为卡住了，这只是第一步"算账"；等"结算完成"，钱才真正动起来，Day 14 讲的时间表要搭配着看。</li><li><strong>对账时盯"清算明细"</strong>：服务商后台通常有清算明细（每笔交易的汇总），核对时按"清算"口径看流水，能帮你快速发现丢单、漏单。</li><li><strong>结账周期问清楚</strong>：不同服务商"清算到结算"的节奏不同，有的 T+1，有的更长，这直接决定你能多快用到钱，签合同前问明白。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>清算环节出错（比如信息不匹配）会导致结算延迟或失败，付款前核对收款信息（Day 12）能省掉很多麻烦。</li><li>有的服务商宣传"秒到账"，要看清是真的实时结算，还是只是"实时清算"——两者差着真金白银的到账时间。</li><li>涉及多币种、多笔对冲的交易，清算净额计算复杂，以服务商或银行的正式账单为准，有疑问及时核对。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">清算＝"对账算账"，结算＝"真金白银到位"；先算清、再给钱，跨境支付里这两步像快递的"分拣"和"派送"，缺一步钱都到不了你手上。 （预告：从买家付款到你能用这笔钱，到底要等几天？明天讲 T+0、T+1、T+2。）</div></div>
+    <div class="next-preview">明天 <strong>Day 14</strong>：T+0、T+1、T+2——到账时间谁说了算？<br>
+<a href="Day14-T0-T1-T2到账时间谁说了算.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

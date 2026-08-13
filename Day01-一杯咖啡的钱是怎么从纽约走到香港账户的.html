@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 1 · 一杯咖啡的钱，是怎么从纽约走到你香港账户的？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>一杯咖啡的钱，是怎么从纽约走到你香港账户的？</h1>
+      <div class="day">Day 1 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>想象一下：一个纽约的姑娘，凌晨三点睡不着，逛到了你的独立站，下单买了一件 35 美元的T恤。她用信用卡一刷，屏幕上跳出"支付成功"。这时你有没有想过——这笔钱从她的银行卡出发，要经过哪些"驿站"，才能变成你香港账户里躺着的港币？</p>
+<p>今天，我们就给这笔钱画一张"旅行地图"。</p>
+<h2>跨境支付全链路</h2>
+<p>跨境支付，说白了就是<strong>一笔钱从一个国家/地区的账户，安全地跑到另一个国家/地区的账户</strong>这件事。它不像国内转账那样"嗖"一下就到位，中间要过好几道"关卡"，每一道关卡都有专门的人负责。</p>
+<p>我们用"跨国快递"来打个比方。你寄一个包裹到纽约，要经过：你家门口的快递站 → 国内转运中心 → 国际航班 → 纽约的分拣中心 → 收件人小区驿站。钱的路程也是类似的：</p>
+<table><thead><tr><th>角色</th><th>通俗说法</th><th>干什么的</th></tr></thead><tbody><tr><td>买家</td><td>寄件人</td><td>用信用卡/借记卡付钱</td></tr><tr><td>发卡行（Issuer，就是给买家发卡的银行）</td><td>寄件人家门口的邮局</td><td>认账：确认买家卡里有足够额度</td></tr><tr><td>卡组织（Card Network，比如 Visa、Mastercard 这类"路网公司"）</td><td>国际航班</td><td>负责把钱的信息在两国的银行间传递</td></tr><tr><td>收单机构（Acquiring Bank，就是帮你收钱的银行）</td><td>纽约的分拣中心</td><td>替你把钱从买家那边"接"过来</td></tr><tr><td>收款账户（你香港的公司账户）</td><td>收件人小区驿站</td><td>钱最终落袋的地方</td></tr></tbody></table>
+<p>一句话：<strong>买家刷卡 → 发卡行确认 → 卡组织传信息 → 收单机构收钱 → 到你香港账户</strong>，这就是跨境支付的主干道。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 728 240" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">买家</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">支付网关</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">收单机构</text>
+<line x1="280" y1="43.0" x2="300" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="510.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">卡组织</text>
+<line x1="426" y1="43.0" x2="446" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="598" y="14" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="656.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">发卡行</text>
+<line x1="572" y1="43.0" x2="592" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="14" y="168" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="72.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">你香港的银行账户</text>
+<rect x="160" y="168" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="218.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">结算</text>
+<line x1="134" y1="197.0" x2="154" y2="168" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="306" y="168" width="116" height="58" rx="6" fill="#ffffff" stroke="#2c3338" stroke-width="2"/>
+<text x="364.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#2c3338" font-family="sans-serif">清算</text>
+<line x1="280" y1="197.0" x2="300" y2="168" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+<rect x="452" y="168" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="510.0" y="193.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">返回"扣款成功"</text>
+<line x1="426" y1="197.0" x2="446" y2="168" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="diagram-caption">▲ 这张图从左往右看，就是一杯咖啡的钱走完全程的路线。注意中间有一根"回程箭头"——发卡行确认扣款后，要把"同意"的消息传回来，你网站的"支付成功"提示才会亮起来。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>买家付的是美元，你收到的是港币</strong>：中间经过了货币兑换（这个概念后面 Day 6、Day 7 会细讲），所以"买家付了35美元"不等于"你到账35美元"。</li><li><strong>不同角色的责任不同</strong>：网站页面上那个"收银台"（支付网关）是替你收钱的，但真正把钱"搬"到你账户的是收单机构和银行，出了问题的找法不一样。</li><li><strong>结算有周期</strong>：钱不是秒到账，通常要等几天（Day 14 专门讲），做现金流规划时要把这个时间差算进去。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>汇率随时在变，到手金额以实际结算为准，请以支付服务商的实际报价为准。</li><li>跨境资金流动涉及中国内地和香港两地的外汇管理要求，尤其是未来要把港币汇回内地时，务必了解清楚政策，不要轻信"可以随便转"的说法。</li><li>选择收单机构/支付服务商时，一定要核实对方是否有合法资质，别把钱交给"黑快递"。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">跨境支付就是"跨国快递"，买家刷卡的瞬间钱才刚"揽收"，后面还有一长串驿站和航班，最后才会落到你的香港账户里。</div></div>
+    <div class="next-preview">明天 <strong>Day 2</strong>：跨境支付和国内支付，到底差在哪？<br>
+<a href="Day02-跨境支付和国内支付到底差在哪.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

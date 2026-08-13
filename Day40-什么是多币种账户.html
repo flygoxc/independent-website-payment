@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 40 · 独立站跨境支付100天 · Day 40：什么是多币种账户？为什么独立站卖家需要一个？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 40：什么是多币种账户？为什么独立站卖家需要一个？</h1>
+      <div class="day">Day 40 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你出国旅游，钱包里装了美元、欧元、日元，到了哪国就用哪种钱。但你总不能带一堆现金吧？如果有一个钱包，里面同时能放美元、欧元、英镑、港币，到了哪儿直接刷对应货币，多方便。多币种账户就是这个"万能钱包"。</p>
+<h2>一张图看懂</h2>
+<p><strong>多币种账户（Multi-Currency Account）</strong>，就是一个银行账户或支付账户里，同时持有多种货币的余额。你不需要为每种货币开一个单独的账户，一个账号搞定。</p>
+<p>传统银行账户通常是"一个账户一种货币"。你要收美元，开个美元账户；要收欧元，再开个欧元账户。管理起来麻烦，每个账户还有最低存款要求。</p>
+<p>多币种账户就不一样了：</p>
+<table><thead><tr><th>对比项</th><th>传统银行账户</th><th>多币种账户</th></tr></thead><tbody><tr><td>账户数量</td><td>每种货币一个</td><td>一个账户多币种</td></tr><tr><td>管理复杂度</td><td>高，要分别管理</td><td>低，统一界面管理</td></tr><tr><td>换汇</td><td>需要手动操作</td><td>通常内置换汇功能</td></tr><tr><td>开户门槛</td><td>通常较高</td><td>相对较低</td></tr><tr><td>费用</td><td>各账户各自收费</td><td>通常按一个账户收费</td></tr><tr><td>适合谁</td><td>大企业、传统贸易</td><td>跨境电商、中小企业</td></tr></tbody></table>
+<p>为什么独立站卖家特别需要多币种账户？</p>
+<p>因为你的买家来自世界各地。美国买家付美元，英国买家付英镑，德国买家付欧元，日本买家付日元。如果你的账户只能收美元，那收英镑和欧元时就被强制换汇，每次都吃汇差。</p>
+<p>有了多币种账户，你可以：</p>
+<ul><li>买家付什么币种，就收什么币种，不强制换汇</li><li>把外币存在账户里，等汇率好的时候再换</li><li>直接用外币付海外供应商或广告费，省换汇</li></ul>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">┌──────── 多币种账户 ────────┐
+         │                            │
+  美元余额: $5,000  ← 美国买家付款
+  欧元余额: €2,000  ← 德国买家付款
+  英镑余额: £1,000  ← 英国买家付款
+  港币余额: HK$10,000 ← 香港公司运营资金
+         │                            │
+         │  需要时灵活换汇或直接支付    │
+         └────────────────────────────┘</pre></div>
+<div class="diagram-caption">▲ 一个多币种账户就像一个有多个格子的大钱包，每个格子放一种货币。买家付什么币种就进哪个格子，不会自动混在一起。你需要用某种货币时，可以从对应格子里取，或者在格子之间按需换汇。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>优先选择支持主要贸易币种的多币种账户。</strong> 至少要支持USD、EUR、GBP、HKD，如果能支持JPY、AUD、CAD更好。像Wise Business、Airwallex、PingPong等都提供多币种账户服务，具体支持的币种和费率请以实际报价为准。</li><li><strong>善用"不换汇"省成本。</strong> 比如你收了美元，同时你的Facebook广告费也用美元付——那就直接从美元余额里扣，不需要先换成港币再付。每次省一次汇差，积少成多。</li><li><strong>注意不同币种余额的最低要求。</strong> 有些多币种账户对某些币种余额有最低保留金额要求，低于这个数可能收管理费。开户前问清楚。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>多币种账户虽然方便，但不同国家和地区的金融监管要求不同。使用非银行支付机构的多币种账户时，要确认该机构是否持有相应牌照，资金是否有保护机制。不要把全部资金长期放在非银行机构账户中，建议定期提现到持牌银行账户。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">多币种账户就是一个"万能钱包"，一个账号同时持有多种货币，帮你避免强制换汇的损失，独立站卖家几乎人手一个。</div></div>
+    <div class="next-preview">明天 <strong>Day 41</strong>：独立站跨境支付100天 · Day 41：虚拟账户和实体银行账户有什么区别？<br>
+<a href="Day41-虚拟账户和实体银行账户有什么区别.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

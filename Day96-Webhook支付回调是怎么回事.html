@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 96 · 什么是Webhook？支付回调是怎么回事？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是Webhook？支付回调是怎么回事？</h1>
+      <div class="day">Day 96 / 100 · 阅读约 5 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>老林的独立站遇到一个问题：客户付完钱后，系统没有自动把订单状态改成"已支付"，客户着急找客服问"我到底付了没有"。老林只好手动登录支付通道后台，一笔一笔查，再手动改订单状态。累不说，还经常漏。</p>
+<p>后来技术朋友告诉他："你没用Webhook啊？配一下就好了，支付成功后通道会自动通知你的系统。"老林一脸懵："Webhook是啥？"</p>
+<p>这就像快递到了之后，快递员不会站在你家门口等你来问——他会自动给你发条短信"快递已送达"。Webhook就是这条"自动短信"。</p>
+<h2>一张图看懂</h2>
+<p><strong>Webhook（网络回调）</strong>，简单说就是"事件发生后，系统自动给你发通知"。</p>
+<p>打个比方：以前你寄快递，想查到哪了，得自己上网查——这叫"轮询"（Polling），相当于你每隔5分钟给快递公司打一次电话问"我的快递到哪了"。而Webhook是你提前跟快递公司说好"快递送达后给我发条短信"，然后你就不用管了，到了它自动通知你。</p>
+<p>在支付场景里，Webhook的作用是这样的：</p>
+<table><thead><tr><th>事件</th><th>Webhook通知</th><th>你的系统该做什么</th></tr></thead><tbody><tr><td>支付成功</td><td>"订单#123已付款"</td><td>自动改订单状态为"已支付"</td></tr><tr><td>支付失败</td><td>"订单#123付款失败"</td><td>保留订单，提醒客户重试</td></tr><tr><td>退款完成</td><td>"订单#123已退款"</td><td>改状态为"已退款"</td></tr><tr><td>拒付发起</td><td>"订单#123被拒付"</td><td>通知客服处理</td></tr><tr><td>订阅扣款成功</td><td>"月费已扣除"</td><td>续期会员</td></tr></tbody></table>
+<p><strong>为什么Webhook很重要？</strong></p>
+<p>因为支付是一个"异步"过程——客户点"支付"后，钱不是瞬间到账的。有时候需要几秒，有时候几分钟，跨境支付甚至可能更长。如果你只靠"支付页面返回的结果"来判断，可能不准——比如客户网断了，页面没跳转回来，但钱其实已经扣了。</p>
+<p>Webhook是支付通道在后台"偷偷"帮你确认的——不管客户那边发生了什么，只要通道确认了"钱到账了"，就通知你。这才是最可靠的状态更新方式。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">Webhook的工作流程，像快递到货后的自动短信：
+
+客户点击"支付"
+  │
+  ▼
+支付通道处理中...（可能几秒到几分钟）
+  │
+  ├──→ 客户浏览器可能跳转回来（不可靠）
+  │    "支付成功了！" ← 但客户可能网断了，看不到
+  │
+  └──→ 支付通道后台确认成功（可靠）
+       │
+       ▼
+    发送Webhook通知 ←── 自动的，像发短信
+       │
+       ▼
+    你的系统收到通知
+       │
+       ▼
+    自动更新订单状态 → "已支付" ✓
+    自动发确认邮件给客户
+    自动通知仓库发货</pre></div>
+<div class="diagram-caption">▲ Webhook是支付通道主动发给你的"确认短信"，不依赖客户的浏览器。就算客户关了网页、断了网，只要通道确认了付款，你的系统照样能收到通知、更新订单。就像快递到了，不管你在不在家，短信都会发到你手机上。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>具体怎么配？三步搞定：</strong></p>
+<p><strong>第1步：找到你的网站系统的Webhook设置。</strong> 如果用Shopify，大部分支付通道的Webhook已经自动配好了。如果是自建站，在支付通道后台找到"Webhooks"或"Notifications"设置项。</p>
+<p><strong>第2步：填入你的"接收地址"（Endpoint URL）。</strong> 这个地址就是你网站上的一个专门接收通知的页面，比如<code>https://你的网站.com/webhook/payment</code>。支付通道会把通知发到这个地址。</p>
+<p><strong>第3步：选择要监听的事件。</strong> 至少开这几个：支付成功、支付失败、退款完成、拒付发起。不用全开，开你需要的就行。</p>
+<p><strong>配好后，测试一下。</strong> 大多数支付通道提供测试功能——点一下"发送测试通知"，看你的系统有没有收到。收到了就说明配置正确。</p>
+<p><strong>一个重要提醒</strong>：Webhook可能会重复发送（通道怕你没收到的，会多发几次）。你的系统需要做"幂等处理"——就是同一个通知收多次，只处理一次。就像快递员给你发了两条"已送达"短信，你不会签收两次。</p>
+<p><strong>如果你用Shopify等建站平台</strong>：好消息是，平台已经帮你处理好Webhook了。你只需要确保支付通道的插件正确安装和配置即可。但如果你做了定制开发，一定要确保Webhook配置正确。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>Webhook通知中可能包含敏感信息，接收端必须做身份验证（验证通知确实来自支付通道，而不是伪造的），否则可能被恶意请求利用。</li><li>Webhook接收端必须使用HTTPS加密连接，不能用HTTP。</li><li>如果你的服务器宕机，Webhook通知会失败——支付通道通常会自动重试（比如间隔5分钟、30分钟、2小时重试几次），但你要确保服务器尽快恢复。</li><li>不要完全依赖Webhook——建议每天跑一次"对账任务"，主动查询通道有没有遗漏的支付成功记录，作为兜底。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">Webhook就是支付通道给你发的"到账短信"——配好接收地址、开好事件监听、做好去重验证，你的订单状态就能自动更新，不用再手动查了。</div></div>
+    <div class="next-preview">明天 <strong>Day 97</strong>：什么是支付令牌化？为什么它更安全？<br>
+<a href="Day97-支付令牌化为什么更安全.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 82 · 英国VAT和澳洲GST——其他国家的税怎么交？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>英国VAT和澳洲GST——其他国家的税怎么交？</h1>
+      <div class="day">Day 82 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你出国旅游，每个国家的过境通道都不一样：欧洲走一个通道，英国走另一个通道，澳洲又是一个通道。每个通道的规矩不同，但道理都一样——你要交税才能过。跨境电商的税务也类似，欧盟有VAT和IOSS，英国和澳洲也有自己的税制。</p>
+<h2>一张图看懂</h2>
+<p>脱欧之后，英国不再是欧盟的一部分，有了自己独立的跨境电商增值税规则。澳大利亚则有自己的GST制度。两者跟欧盟VAT有相似之处，但各有特点。</p>
+<h3>英国VAT</h3>
+<table><thead><tr><th>要素</th><th>英国规定</th></tr></thead><tbody><tr><td>税种</td><td>VAT（增值税）</td></tr><tr><td>标准税率</td><td>20%（具体税率请以英国税务局最新公布为准）</td></tr><tr><td>远程销售起征点</td><td>已取消，每单都要收VAT</td></tr><tr><td>注册门槛</td><td>向英国消费者销售的非英国企业，无注册门槛，需注册VAT</td></tr><tr><td>申报周期</td><td>通常按季度申报</td></tr></tbody></table>
+<p>英国在2021年跟欧盟同步实施了新规：从非英国地区寄入英国的低价值包裹（≤135英镑），不再免税，卖家在销售时就要收取VAT。大型电商平台（如Amazon、eBay）有义务代收代缴VAT，但<strong>独立站卖家需要自己注册VAT税号并自行收取和申报</strong>。</p>
+<h3>澳大利亚GST</h3>
+<table><thead><tr><th>要素</th><th>澳洲规定</th></tr></thead><tbody><tr><td>税种</td><td>GST（Goods and Services Tax，商品及服务税）</td></tr><tr><td>税率</td><td>10%</td></tr><tr><td>注册门槛</td><td>年销售额超7.5万澳元需注册GST</td></tr><tr><td>申报周期</td><td>按季度或按月申报</td></tr></tbody></table>
+<p>澳大利亚在2018年实施了低价值进口商品GST规则：从海外寄入澳洲、价值1000澳元以下的商品，卖家需要注册GST并向买家收取，然后申报缴纳。如果你的独立站年销往澳洲的销售额超过7.5万澳元，就必须注册GST。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><svg viewBox="0 0 290 86" xmlns="http://www.w3.org/2000/svg" role="img">
+<defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L8,3 z" fill="#2c3338"/></marker></defs>
+<rect x="14" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="72.0" y="33.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">独立站卖到不同国</text>
+<text x="72.0" y="49.0" text-anchor="middle" font-size="12" font-weight="500" fill="#ffffff" font-family="sans-serif">家</text>
+<rect x="160" y="14" width="116" height="58" rx="6" fill="#18b9dc" stroke="#0e8cab" stroke-width="2"/>
+<text x="218.0" y="39.0" text-anchor="middle" font-size="12" font-weight="600" fill="#ffffff" font-family="sans-serif">注册VAT</text>
+<line x1="134" y1="43.0" x2="154" y2="14" stroke="#2c3338" stroke-width="2" marker-end="url(#a)"/>
+</svg></div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>英国VAT注册</strong>。如果你的独立站有英国买家，就需要注册英国VAT税号。可以通过英国税务局官网（HMRC）在线申请，也可以委托税务代理办理。拿到税号后，在结账时按20%收取VAT。</li><li><strong>澳洲GST注册</strong>。当你的澳洲销售额接近7.5万澳元时，就该开始注册GST了。通过澳大利亚税务局（ATO）官网可以在线申请。注册后，结账时按10%收取GST。</li><li><strong>在建站平台设置多区域税率</strong>。Shopify等平台支持按不同国家设置不同的税率规则。配置好后，系统会根据买家的收货地址自动计算正确的税费，不需要你手动判断。</li><li><strong>找一家靠谱的税务代理</strong>。英国和澳洲的税务申报有自己的格式和要求，建议委托有跨境电商经验的税务代理处理。费用因服务商和服务范围而异，请以实际报价为准。</li><li><strong>不要忘了关税的问题</strong>。VAT/GST是消费税，跟关税是两码事。超过一定价值的包裹还可能产生关税，具体免税额度各国不同（英国135英镑、澳洲1000澳元），请以海关最新政策为准。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><p>未在规定时间内注册VAT/GST税号、未收取或未申报税款，均属违法行为。英国税务局和澳洲税务局都有权追缴税款并加收罚款和滞纳金。长期不合规可能导致被列入失信名单，甚至被禁止在相关市场销售。请及时了解并遵守各市场的税务法规，必要时咨询专业税务顾问。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">不同国家有不同的"消费税"——英国VAT 20%、澳洲GST 10%，卖到哪个国家就注册哪个国家的税号、按规矩收税申报。</div></div>
+    <div class="next-preview">明天 <strong>Day 83</strong>：海关申报怎么做？低报价值有什么风险？<br>
+<a href="Day83-海关申报怎么做.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

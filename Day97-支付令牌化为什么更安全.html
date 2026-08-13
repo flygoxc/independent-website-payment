@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 97 · 什么是支付令牌化？为什么它更安全？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是支付令牌化？为什么它更安全？</h1>
+      <div class="day">Day 97 / 100 · 阅读约 5 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>小杨的客户问她："我在你网站上输入信用卡号，安全吗？万一被黑客偷了怎么办？"小杨一下说不上来——她只知道网站用了SSL加密，但客户卡号存哪了、怎么存的，她不太清楚。</p>
+<p>这就像你把贵重物品存在酒店保险箱——你肯定想知道：物品是原样放的，还是换了个"代币"存？万一保险箱被撬了，小偷拿到的是你的真东西还是一张没用的代币？</p>
+<p>支付令牌化，就是"把你的真东西换成一张没用的代币"来存。</p>
+<h2>一张图看懂</h2>
+<p><strong>令牌化（Tokenization）</strong>，就是把敏感信息（如信用卡号）替换成一个没有意义的"代号"（令牌），以后只用代号来处理，真正的卡号存在安全的地方。</p>
+<p>打个比方：你去游乐场，把钱包存到储物柜里，拿到一个手环（令牌）。之后你在游乐场里消费，刷卡环就行，不用带钱包。就算手环丢了，别人拿着也用不了——因为手环上没有你的银行卡信息，只是一个跟储物柜对应的编号。</p>
+<p>在支付里是这样的：</p>
+<pre class="ascii-diagram">客户输入卡号：4111 1111 1111 1234
+        │
+        ▼
+   支付通道把卡号存到安全库里
+        │
+        ▼
+   返回一个令牌：tok_abc123xyz
+        │
+        ▼
+   你的网站只保存 tok_abc123xyz
+   （即使被黑客偷了也没用）</pre>
+<p><strong>令牌化vs加密的区别：</strong></p>
+<table><thead><tr><th>对比项</th><th>加密（Encryption）</th><th>令牌化（Tokenization）</th></tr></thead><tbody><tr><td>原理</td><td>用密码把数据"锁起来"</td><td>把数据"换成代号"</td></tr><tr><td>比喻</td><td>把信装进保险箱</td><td>把信换成密码本</td></tr><tr><td>被偷了</td><td>理论上可以被破解</td><td>代号无法还原成卡号</td></tr><tr><td>合规要求</td><td>高（需要做加密管理）</td><td>低（不存敏感数据就不用管）</td></tr></tbody></table>
+<p><strong>为什么令牌化更安全？</strong></p>
+<p>因为你的网站根本不碰真卡号。黑客攻破你的网站，只能偷到一堆"tok_abc123xyz"这样的代号——没有支付通道的密钥，这些代号就是一堆乱码，完全没用。</p>
+<p><strong>令牌化的另一个好处：支持"一键支付"。</strong> 客户第一次输入卡号，支付通道返回令牌存到你网站。下次客户再买，直接用令牌扣款，不用再输卡号——就像手环一刷就付，又快又安全。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">令牌化的工作流程，像"存包换手环"：
+
+第一次购买：
+客户输入卡号 ──→ 支付通道 ──→ 返回令牌
+                   │              │
+              安全存储卡号    你的网站保存令牌
+              （在通道那边）   （在你这边）
+
+第二次购买：
+客户点"一键支付" ──→ 网站发送令牌 ──→ 支付通道
+                                           │
+                                      用令牌找到卡号
+                                      完成扣款
+                                           │
+                                      支付成功 ✓</pre></div>
+<div class="diagram-caption">▲ 卡号只在支付通道那边存了一份，你的网站只拿一个令牌。就像你的钱包存在游乐场总服务台，你只拿着手环到处消费。手环丢了不怕，钱包还在总台锁着。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>怎么在独立站上用令牌化？</strong></p>
+<p><strong>如果你用Shopify + Stripe：</strong> 好消息——令牌化默认就开启了。Stripe在客户第一次支付时会自动生成令牌，Shopify自动保存。客户下次购买时，会看到"使用上次保存的卡"选项，一键就付。</p>
+<p><strong>如果你用自建站：</strong></p>
+<p><strong>第1步：使用支付通道的令牌化API。</strong> Stripe有"SetupIntent"和"PaymentMethod"接口，Airwallex也有类似功能。不要自己存卡号——这是违规的。</p>
+<p><strong>第2步：在前端用"托管表单"。</strong> 客户输入卡号的表单由支付通道提供（如Stripe Elements），卡号直接传给通道，不经过你的服务器。你只收到返回的令牌。</p>
+<p><strong>第3步：保存令牌到你的数据库。</strong> 令牌本身不敏感，可以安全存储。用令牌+客户ID关联，下次扣款时把令牌发给通道即可。</p>
+<p><strong>第4步：支持"保存卡片"功能。</strong> 在支付页面加一个"保存此卡方便下次使用"的勾选框。根据统计，支持一键支付的网站，回头客的复购率能提升20%-30%。</p>
+<p><strong>一个合规提醒</strong>：如果你做了令牌化，就不用操心PCI DSS的大部分要求了——因为你"不碰"卡号，合规范围大大缩小。但你要确保令牌的使用方式符合支付通道的规定。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>绝对不要在自己的数据库里存储完整的信用卡号——这违反PCI DSS规定，可能导致罚款甚至被关闭收单资格。</li><li>令牌虽然不敏感，但仍应妥善管理——令牌被偷可能导致未经授权的扣款（如果攻击者能模拟你的身份调用支付通道API）。</li><li>使用第三方令牌化服务时，确认服务方是否持有相关金融牌照，数据存储是否符合当地法规。</li><li>令牌有时效性，部分通道的令牌会过期，需要在客户再次支付时重新生成，做好异常处理。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">令牌化就像存包换手环——卡号存在支付通道的安全库里，你的网站只拿一个代号，黑客偷了也没用，客户还能一键复购，安全又方便。</div></div>
+    <div class="next-preview">明天 <strong>Day 98</strong>：什么是订阅制支付？recurring billing怎么搞？<br>
+<a href="Day98-订阅制支付怎么搞.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

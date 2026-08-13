@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 44 · 独立站跨境支付100天 · Day 44：PayPal、Apple Pay、Google Pay——电子钱包怎么收？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 44：PayPal、Apple Pay、Google Pay——电子钱包怎么收？</h1>
+      <div class="day">Day 44 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你出门买东西，可能不带现金、不带卡，但手机一定在身上。Apple Pay"滴"一下，PayPal点一下，Google Pay扫一下，钱就付了。海外买家也是这个习惯。你的独立站如果只接信用卡输入卡号的支付方式，那些习惯"手机一碰就付"的买家可能嫌麻烦直接走了。</p>
+<h2>一张图看懂</h2>
+<p><strong>电子钱包（E-Wallet / Digital Wallet）</strong>，就是装在手机或电脑里的"数字钱包"。买家把银行卡绑定到钱包里，付款时不用每次输入卡号，直接用钱包验证就行。</p>
+<p>三大电子钱包的特点：</p>
+<table><thead><tr><th>钱包</th><th>母公司</th><th>核心特点</th><th>用户群体</th></tr></thead><tbody><tr><td>PayPal</td><td>PayPal Holdings</td><td>独立钱包，可绑卡也可用余额</td><td>全球用户超4亿，欧美尤其普及</td></tr><tr><td>Apple Pay</td><td>苹果</td><td>绑定在iPhone/Apple Watch上</td><td>苹果设备用户，消费力较强</td></tr><tr><td>Google Pay</td><td>谷歌</td><td>安卓手机+Chrome浏览器</td><td>安卓用户为主</td></tr></tbody></table>
+<p>（用户数据基于公开资料，请以最新数据为准。）</p>
+<p>它们和传统信用卡支付有什么不同？</p>
+<p><strong>传统信用卡支付</strong>：买家到结账页 → 手动输入卡号、有效期、CVV → 银行验证 → 支付完成。步骤多，容易输错，转化率会打折。</p>
+<p><strong>电子钱包支付</strong>：买家到结账页 → 点"PayPal"或"Apple Pay"按钮 → 跳转/弹窗验证（指纹、面容、密码） → 支付完成。步骤少，体验好，转化率通常更高。</p>
+<p>PayPal比较特殊——它不只是"快捷支付"，本身还是一个"钱包"。买家可以在PayPal里存余额，直接用余额付款。而且PayPal有买家保护政策，买家觉得更安心。但卖家要注意，PayPal的争议处理偏向买家，退单风险需要重视。</p>
+<p>Apple Pay和Google Pay更像是"信用卡的快捷通道"——本质还是刷你绑定的卡，只是把输入卡号的步骤省了。对卖家来说，资金走的是信用卡通道，结算流程和普通信用卡一样。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">结账页
+  |
+  ├── 输入卡号支付：卡号 → 有效期 → CVV → 验证 → 完成（步骤多）
+  |
+  ├── PayPal：点击 → 跳转PayPal登录 → 确认 → 完成（买家有保护）
+  |
+  ├── Apple Pay：点击 → 面容/指纹验证 → 完成（最快，苹果设备）
+  |
+  └── Google Pay：点击 → Google账号验证 → 完成（安卓设备）</pre></div>
+<div class="diagram-caption">▲ 四条支付路径，"手动输入卡号"是最长的。电子钱包都是"一键支付"的思路——减少输入步骤、加快结账速度。Apple Pay和Google Pay是信用卡的"快捷通道"，PayPal是独立的支付体系，有自己的资金池和争议规则。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>优先接PayPal。</strong> 欧美市场PayPal几乎是标配，很多买家看到"不支持PayPal"直接就走。独立站第一天上线，就应该有PayPal。费率通常在3.49%+固定费用左右，请以实际报价为准。</li><li><strong>Apple Pay和Google Pay用Stripe等收单机构就能一键开通。</strong> 不需要单独找苹果和谷歌签约，你的收单机构（比如Stripe）后台勾选一下就行。开通成本几乎为零，转化率提升明显。</li><li><strong>注意PayPal的风控。</strong> PayPal对卖家审核比较严，新账号容易受限。保持低退单率、及时发货上传物流单号、不要突然交易量暴增，能减少被风控的概率。被冻结后申诉流程较长，建议同时有备用收款方案。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>PayPal的买家保护政策使得买家较容易发起争议和退款。如果卖家无法提供有效的物流凭证和交易证据，PayPal通常裁定买家胜诉。建议保留完整的订单、物流、沟通记录。Apple Pay和Google Pay的争议走信用卡退单流程，同样需要做好证据留存。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">电子钱包就是"一键付款"的数字钱包——PayPal是欧美标配必接，Apple Pay和Google Pay通过收单机构一键开通零成本，接上它们能让结账更快、转化率更高。</div></div>
+    <div class="next-preview">明天 <strong>Day 45</strong>：独立站跨境支付100天 · Day 45：先买后付（BNPL）是什么？Klarna、Afterpay怎么接入？<br>
+<a href="Day45-先买后付BNPL是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

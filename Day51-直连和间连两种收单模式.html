@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 51 · 独立站跨境支付100天 · Day 51："直连"和"间连"——两种收单模式的区别</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 51："直连"和"间连"——两种收单模式的区别</h1>
+      <div class="day">Day 51 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你寄快递，可以自己打电话给顺丰下单，也可以通过楼下代收点帮你寄。直接找顺丰就是"直连"，通过代收点就是"间连"。跨境收单也是这两种模式——直接找卡组织/收单银行签约，或者通过支付平台间接接入。今天讲清楚两者的区别。</p>
+<h2>一张图看懂</h2>
+<p><strong>直连模式（Direct Integration）</strong>，就是你直接和收单机构或卡组织签约，自己成为"商户"。你的独立站直接对接收单机构的支付接口，交易资金直接从收单机构结算到你账户。</p>
+<p><strong>间连模式（Indirect Integration）</strong>，就是通过一个支付平台（比如Stripe、Shopify Payments、PayPal等）间接接入卡组织。你不是直接签约的商户，而是这个平台的"子商户"。</p>
+<table><thead><tr><th>对比项</th><th>直连模式</th><th>间连模式</th></tr></thead><tbody><tr><td>签约对象</td><td>收单银行/卡组织</td><td>支付平台（如Stripe）</td></tr><tr><td>商户号</td><td>有自己的商户号</td><td>用平台的商户号</td></tr><tr><td>费率</td><td>可谈判，量大有优势</td><td>平台统一定价</td></tr><tr><td>开户门槛</td><td>高，需资质审核、风控评估</td><td>低，线上注册即可</td></tr><tr><td>开户时间</td><td>几周到几个月</td><td>几天</td></tr><tr><td>资金控制</td><td>直接结算到你账户</td><td>先到平台，再转给你</td></tr><tr><td>风控灵活性</td><td>高，可自定义规则</td><td>受平台规则限制</td></tr><tr><td>适合谁</td><td>大卖家、交易量大的企业</td><td>中小卖家、起步阶段</td></tr></tbody></table>
+<p>打两个比方来理解：</p>
+<p><strong>直连</strong>就像你自己租了一个门面，直接和快递公司签合同。你要装修门面（对接技术）、签合同（资质审核）、自己管理物流（风控）。好处是成本可控、自主权大，但前期投入和门槛高。</p>
+<p><strong>间连</strong>就像你在商场里租了个柜台，商场已经帮你对接好了快递、水电、物业。你只需要交租金（平台费率），就能开始做生意。好处是省事、快，但自主权小，成本可能更高。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">直连模式：
+你的独立站 ──→ 收单银行 ──→ 卡组织 ──→ 发卡行
+（你有独立商户号，钱直接结算到你账户）
+
+间连模式：
+你的独立站 ──→ 支付平台 ──→ 收单银行 ──→ 卡组织 ──→ 发卡行
+（你用平台的商户号，钱先到平台，再转给你）
+              ↑
+        平台在这里"代理"你</pre></div>
+<div class="diagram-caption">▲ 直连模式下，你和收单银行之间没有中间人；间连模式下，支付平台站在你和收单银行之间，帮你处理了签约、技术对接、风控等环节。多一层"中间人"，换来的是方便和低门槛，代价是费率可能更高、自主权更小。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>起步阶段用间连，量大了考虑直连。</strong> 月交易额几万美元的阶段，间连模式的便利性远大于费率差异。等月交易额做到几十万美元，直连省下的费率才值得你去花时间和精力走流程。</li><li><strong>直连不是想连就能连。</strong> 收单银行对直连商户有资质要求——公司注册地、经营年限、历史交易记录、退单率等都有门槛。香港公司相对容易，内地公司直接找海外收单银行很难。具体条件请咨询收单机构。</li><li><strong>间连也有"间连中的直连"。</strong> 有些平台（如Airwallex）提供"实名商户"模式——你用平台的接口，但有自己的商户号。介于纯直连和纯间连之间，兼顾便利性和自主权。可以了解一下。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>间连模式下，你的资金先经过支付平台再转给你。如果支付平台因合规问题被冻结或处罚，你的资金可能受牵连。直连模式虽然自主权大，但你需要自行承担更多风控和合规责任。无论哪种模式，都要确保业务合规，保留完整交易记录。选择间连平台时，务必确认其持有正规支付牌照。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">直连是自己找收单银行签约——门槛高但费率低、自主权大；间连是通过支付平台间接接入——门槛低但费率可能高、受平台限制。起步用间连、量大了考虑直连。</div></div>
+    <div class="next-preview">明天 <strong>Day 52</strong>：独立站跨境支付100天 · Day 52：NRA账户是什么？内地公司收外汇用的<br>
+<a href="Day52-NRA账户是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

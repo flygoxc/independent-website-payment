@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 7 · 什么是汇率？买入价和卖出价为什么不一样？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是汇率？买入价和卖出价为什么不一样？</h1>
+      <div class="day">Day 7 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>香港街头常有这样的店：玻璃窗上挂着一块电子牌，上面写着"美元 买入7.80 卖出7.84"。门口排队的游客看了一眼，把美元递进去，店员按"7.80"给他港币。</p>
+<p>你有没有好奇过：为什么同一时刻，它收你美元用7.80，卖你美元却要7.84？这不是银行记错价，这是汇率世界的第一课。</p>
+<h2>汇率、买入价、卖出价</h2>
+<p><strong>汇率（Exchange Rate）</strong>，就是两种货币的交换比例，前面说过，像"一个苹果换几个橘子"。</p>
+<p>关键来了：<strong>这个比例，不同的人看，方向是反的。</strong>在货币兑换店里，"买入价"和"卖出价"是从<strong>兑换店自己</strong>的角度说的：</p>
+<ul><li><strong>买入价（Buying Rate，银行/兑换店收你外币时给的价格）</strong>：它买你的美元，当然想便宜点买，所以价格低。比如7.80，意思是"你的1美元，我按7.80港币收"。</li><li><strong>卖出价（Selling Rate，银行/兑换店卖给你外币时收的价格）</strong>：它卖美元给你，当然想卖贵点，所以价格高。比如7.84，意思是"你想买我的1美元，得付我7.84港币"。</li></ul>
+<p>中间的差价叫<strong>点差/汇差（Spread，就是卖出价和买入价的差，是兑换店和银行的利润来源）</strong>。差多少？差0.04港币。这就是这家店"赚差价"的生意经——跟你去水果店，老板收苹果贱、卖苹果贵，一个道理。</p>
+<p>那么"1美元到底值多少港币"？市场里有一个公认的"中间值"叫<strong>中间价（Mid Rate，买入价和卖出价的中间数）</strong>，它代表当前市场上大家都认可的公平价格。买入价一定低于中间价，卖出价一定高于中间价，差价就是机构的"服务费"。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">一块货币兑换店的电子牌，中间一行"美元：中间价 7.82"，上面一行红字"买入价 7.80"，下面一行绿字"卖出价 7.84"</div></div><div class="step"><div class="num">2</div><div class="txt">牌子上画一个小人把美元递进去，店员递出港币</div></div><div class="step"><div class="num">3</div><div class="txt">旁边画一个小人用港币买美元</div></div></div></div>
+<div class="diagram-caption">▲ 中间价是"公平秤"，买入价和卖出价像"剪刀"一样张开，剪刀的两刃之差，就是兑换店和银行的收入来源——你每次换汇，都等于在这把剪刀上"过了一道"。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>看报价先问"对谁的价格"</strong>：支付服务商说"结算汇率7.80"，你要搞清楚这是对它的买入价（它收你的美元）还是别的口径。同一时刻，方向搞反，每万美元能差出一笔不小的数。</li><li><strong>别被"免手续费"迷惑</strong>：有些服务商说"换汇零手续费"，但汇率里的点差比别家大——羊毛出在羊身上，把"汇率成本"和"手续费"放一起比总成本。</li><li><strong>大额换汇前货比三家</strong>：不同银行、不同服务商的点差不同，几万美元的量级，点差差0.01就可能是几百块的事。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>汇率报价实时变动，以上数字仅为讲解举例，请以银行或服务商的实际报价为准。</li><li>警惕"汇率特别好"的不明机构，正规持牌机构的汇率不会明显偏离市场，偏离太多反而可疑。</li><li>换汇有成本和双向性（Day 6讲过），不要频繁换进换出，来回两趟，点差就吃掉一块利润。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">汇率是货币交换的比例，买入价和卖出价是银行/兑换店"低买高卖"赚差价的两把尺子，中间那个"公平值"叫中间价——看懂这三者，换汇就不再是黑箱。 （预告：银行对外报的买入卖出价，跟它自己内部算账的"中间价"是什么关系？明天讲中间价。）</div></div>
+    <div class="next-preview">明天 <strong>Day 8</strong>：中间价是什么？银行怎么给你报价？<br>
+<a href="Day08-中间价是什么.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

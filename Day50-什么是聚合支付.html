@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 50 · 独立站跨境支付100天 · Day 50：什么是聚合支付？一个接口收所有支付方式</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>独立站跨境支付100天 · Day 50：什么是聚合支付？一个接口收所有支付方式</h1>
+      <div class="day">Day 50 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+<p>你小区门口有个快递柜，顺丰、中通、圆通、京东的包裹都能放进去，你取件时去一个地方就行，不用跑四个快递点。聚合支付就是这个"快递柜"——一个接口，把信用卡、PayPal、Apple Pay、iDEAL、Pix、Boleto全收了。你不用一个一个去对接。</p>
+<h2>一张图看懂</h2>
+<p><strong>聚合支付（Payment Aggregation）</strong>，就是通过一个支付服务商的接口，同时接入多种支付方式。买家在结账页看到的所有支付选项，背后都由一个聚合支付平台统一处理。</p>
+<p>没有聚合支付之前，你要接多少种支付方式，就要签多少个合同、对接多少个接口、管理多少个后台。接信用卡找Stripe，接PayPal找PayPal，接iDEAL找Mollie，接Pix找EBANX……光是技术对接就要花好几周。</p>
+<p>有了聚合支付，你只需要：</p>
+<ol><li>注册一个聚合支付账号（比如Stripe、Adyen、Checkout.com等）</li><li>在独立站上接入一个API</li><li>在后台勾选你要开通的支付方式</li></ol>
+<p>搞定。</p>
+<table><thead><tr><th>对比项</th><th>逐个对接</th><th>聚合支付</th></tr></thead><tbody><tr><td>合同数量</td><td>N个（每种支付方式一个）</td><td>1个</td></tr><tr><td>技术对接</td><td>N个接口</td><td>1个接口</td></tr><tr><td>后台管理</td><td>N个后台</td><td>1个后台</td></tr><tr><td>资金到账</td><td>分散到各账户</td><td>统一到一个账户</td></tr><tr><td>费率</td><td>各不相同，需逐个谈判</td><td>统一或分支付方式计费</td></tr><tr><td>灵活性</td><td>可定制性强</td><td>受聚合平台限制</td></tr></tbody></table>
+<p>主流聚合支付平台：</p>
+<table><thead><tr><th>平台</th><th>强项</th><th>适合</th></tr></thead><tbody><tr><td>Stripe</td><td>开发体验好，支持的支付方式多</td><td>技术能力强的团队</td></tr><tr><td>Adyen</td><td>企业级，全球覆盖广</td><td>大卖家、品牌独立站</td></tr><tr><td>Checkout.com</td><td>欧洲市场强</td><td>欧洲为主的卖家</td></tr><tr><td>Airwallex</td><td>亚太+中国卖家友好</td><td>中国卖家</td></tr><tr><td>Mollie</td><td>欧洲本地支付方式全</td><td>欧洲市场为主的卖家</td></tr></tbody></table>
+<p>（各平台支持的支付方式和费率不同，请以实际为准。）</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">你的独立站（一个结账页）
+                       |
+                       ↓
+              ┌─ 聚合支付接口 ─┐
+              |   (一个API)     |
+              └────┬───────────┘
+                   |
+     ┌───┬────┬────┼────┬────┬────┐
+     ↓   ↓    ↓    ↓    ↓    ↓    ↓
+   Visa PayPal Apple iDEAL Pix Boleto Klarna
+   etc  etc   Pay  etc   etc  etc    etc
+     |   |    |    |    |    |    |
+     └───┴────┴────┴────┴────┴────┘
+                   |
+                   ↓
+          统一结算到你的账户</pre></div>
+<div class="diagram-caption">▲ 上面是你的独立站，只接了一个聚合支付API。但这个API像一个"多口转换器"，把结账页连到了十几种支付方式。无论买家选哪种方式付款，钱最终都统一结算到你的账户。你只需要管一个后台、看一份报表。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ol><li><strong>起步阶段用聚合支付，省时省力。</strong> 新手独立站不用纠结选哪种支付方式，先用Stripe或Airwallex开通主流支付方式，跑起来再说。等业务量大了，再考虑是否需要逐个直接对接某些高占比的支付方式。</li><li><strong>注意聚合支付对各支付方式的覆盖程度。</strong> 不是每个聚合平台都支持所有支付方式。比如Stripe覆盖欧美很好，但巴西的Pix可能需要通过EBANX。选聚合平台前，先确认你需要的支付方式它是否都支持。</li><li><strong>关注费率结构。</strong> 聚合支付的费率可能因支付方式不同而不同——信用卡可能2.9%+0.3美元，本地支付可能1.5%+0.2美元。看清费率表，别以为"一个费率通吃"。</li></ol></div>
+<div class="warning-box"><h3>风险提示</h3><p>聚合支付意味着你把所有鸡蛋放在一个篮子里——如果聚合平台出问题（宕机、冻结账户、停止服务），你所有支付方式都受影响。建议准备一个备用聚合支付方案，在主方案出问题时能快速切换。同时注意聚合平台的数据安全和隐私合规，确保买家支付数据不被滥用。</p></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">聚合支付就是一个接口收所有支付方式——像快递柜收所有公司的包裹，签一份合同、对接一个API、管一个后台，就能同时支持信用卡、电子钱包、本地支付，是独立站起步阶段最高效的选择。</div></div>
+    <div class="next-preview">明天 <strong>Day 51</strong>：独立站跨境支付100天 · Day 51："直连"和"间连"——两种收单模式的区别<br>
+<a href="Day51-直连和间连两种收单模式.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

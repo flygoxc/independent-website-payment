@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 6 · 人民币、港币、美元之间，钱是怎么换的？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>人民币、港币、美元之间，钱是怎么换的？</h1>
+      <div class="day">Day 6 / 100 · 阅读约 3 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>菜市场里，你想把一筐苹果换成橘子。对方说：可以，但一个苹果换两个橘子。你同意了，一筐苹果换走了两筐橘子。这件事里没有谁吃亏、谁占便宜，只要双方都认这个"交换比例"，交易就成了。</p>
+<p>钱换钱，跟苹果换橘子是一个道理。</p>
+<h2>货币兑换</h2>
+<p><strong>货币兑换（Currency Exchange，就是把一种货币按一定比例换成另一种货币）</strong>，在跨境生意里每天都在发生：纽约的买家付给你美元，你的香港账户收的是港币，这中间就发生了"美元换港币"。</p>
+<p>为什么不能直接"花美元"？因为港币和美元是两种不同的"水果"，你要在港元体系里进货、发工资，就必须先把美元换成港币。换多少？按<strong>汇率（Exchange Rate，就是两种货币之间的兑换比例）</strong>来算。汇率就像"一个苹果换几个橘子"里的"2"，是市场的规则。</p>
+<p>货币兑换常见的方式和场合：</p>
+<table><thead><tr><th>方式</th><th>谁在做</th><th>常见场景</th></tr></thead><tbody><tr><td>银行牌价兑换</td><td>各家银行</td><td>在银行把美元换成港币</td></tr><tr><td>支付服务商代换</td><td>支付服务商</td><td>收单后帮你把美元结算成港币</td></tr><tr><td>外汇市场交易</td><td>各大金融机构</td><td>大额资金批发买卖</td></tr></tbody></table>
+<p>有个必须知道的概念：<strong>基准货币（Base Currency，就是被当作"1个单位"的那一种货币）</strong>。一般报价说"1美元兑7.8港币"，美元是基准。别小看这个"1"，它决定你算账时谁当"单位1"。</p>
+<p>还有一个容易绕晕的点：<strong>换汇是"双向"的</strong>。你可以用美元换港币，也可以反过来用港币换美元。苹果和橘子都能当"交换的一方"。在生意里，收进来的外币怎么处理、什么时候换，是要花心思的决策。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">一个天平，左边托盘放着"1美元"，右边托盘放着"7.8港币"，天平的支点写着"汇率"二字</div></div><div class="step"><div class="num">2</div><div class="txt">旁边画两个筐，一个筐里是"买家付的美元"，另一个筐里是"你账户里的港币"，筐之间画一个写着"货币兑换"的传送带</div></div></div></div>
+<div class="diagram-caption">▲ 天平平衡，代表"1美元≈7.8港币"这个交换比例成立；传送带把美元"搬"成港币，这就是跨境结算里每天都在发生的动作。具体比例会变，以实际报价为准。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>结算币种可以选</strong>：很多支付服务商允许你选择把收到的美元结算成港币，还是先放着、攒一起再换。先攒后换，可以降低频繁换汇的成本，但也承担了汇率波动的风险。</li><li><strong>定价时要留"汇率余量"</strong>：美元标价是死的，但汇率是活的。如果汇率波动大，你的利润会跟着上蹿下跳，可以在定价时预留一点缓冲空间。</li><li><strong>多币种账户更灵活</strong>：香港公司常开多币种账户，美元、港币分开存放，什么时候换、按什么价换，主动权在自己手里，而不是被动接受服务商默认的操作。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>汇率时刻在变，换汇时点和换汇成本会直接影响利润，请以实际成交价为准。</li><li>"换钱"必须走正规金融机构。找私人或"地下钱庄"换汇，属于违规行为，还可能血本无归，绝对不能碰。</li><li>记住你是用美元换港币，还是港币换人民币，不同方向涉及的监管要求不同，后面几天我们会专门讲。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">货币兑换就是"苹果换橘子"，按一个双方都认可的比例（汇率）交换；跨境生意里，每一次换汇都是一次成本与风险的决策。 （预告：交换比例从哪来？为什么银行"买入价"和"卖出价"不一样？明天讲汇率。）</div></div>
+    <div class="next-preview">明天 <strong>Day 7</strong>：什么是汇率？买入价和卖出价为什么不一样？<br>
+<a href="Day07-什么是汇率.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

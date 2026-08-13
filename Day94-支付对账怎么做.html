@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 94 · 什么是对账？独立站卖家怎么做支付对账？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>什么是对账？独立站卖家怎么做支付对账？</h1>
+      <div class="day">Day 94 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>每个月底，老吴都要对着三份数据发愁：Shopify后台的订单金额、Stripe后台的收入金额、银行账户的实际到账金额——三个数字总是对不上。"明明卖了5万美元，Stripe显示4.7万，银行到账4.6万，那3000美元去哪了？"</p>
+<p>这就像你开个小卖部，收银机显示卖了1000块，但数抽屉里的钱只有950块——差了50块，你得查清楚是少收了、找错了、还是被偷了。这个过程，就叫"对账"。</p>
+<h2>一张图看懂</h2>
+<p><strong>对账（Reconciliation）</strong>，就是把不同来源的金额数据放在一起比对，确认每一笔钱都对得上。简单说就是"三方对账"——订单系统、支付通道、银行账户，三边的数字要一致。</p>
+<p>为什么要对账？因为钱从买家到你的账户，中间经过了好几道手，每一道手都可能"扣一点"：</p>
+<pre class="ascii-diagram">买家付了 $100
+  │
+  ├─ 通道手续费扣了 $3 → 通道记录 $97
+  ├─ 退款了一笔 -$20 → 通道记录 $77
+  ├─ 拒付手续费 -$15 → 通道记录 $62
+  ├─ 跨境汇款费 -$5 → 银行记录 $57
+  └─ 汇率转换差 -$2 → 最终到账 $55</pre>
+<p>所以买家付了100美元，你到账可能只有55美元——中间的每一笔扣费都要能解释清楚。</p>
+<p><strong>对账要做的三件事：</strong></p>
+<table><thead><tr><th>对账内容</th><th>快递比喻</th><th>怎么做</th></tr></thead><tbody><tr><td>订单 vs 通道</td><td>发货单 vs 快递揽收记录</td><td>确认每笔订单在通道那边都有对应交易</td></tr><tr><td>通道 vs 银行</td><td>快递签收单 vs 你的签收记录</td><td>确认通道的每笔结算款都到了银行</td></tr><tr><td>退款/拒付</td><td>退货记录</td><td>确认每笔退款和拒付都记录在案</td></tr></tbody></table>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><pre class="ascii-diagram">三方对账流程，像三角形的三个顶点互相对照：
+
+        订单系统（Shopify）
+        "卖了多少钱"
+           /        \
+          / 对账1     \ 对账2
+         /            \
+支付通道（Stripe）─── 银行账户
+"收了多少钱"  对账3   "到了多少钱"</pre></div>
+<div class="diagram-caption">▲ 三条线两两对账——订单和通道对、通道和银行对、订单和银行对。如果三个数字一致（考虑手续费差异），对账通过。如果不一致，就沿着三角形某条边查问题。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>具体怎么做？给你一套简单可操作的流程：</strong></p>
+<p><strong>第1步：每月固定时间对账。</strong> 建议每月1-5号对上个月的账。固定时间，养成习惯，不要拖。</p>
+<p><strong>第2步：导出三份数据。</strong></p>
+<ul><li>Shopify后台：导出上月所有订单（含金额、状态）</li><li>支付通道后台：导出上月所有交易记录（含交易额、手续费、退款、拒付）</li><li>银行账户：导出上月所有入账记录</li></ul>
+<p><strong>第3步：用Excel做三个比对。</strong></p>
+<p>比对1：订单总额 vs 通道交易总额。差异应该是手续费+退款+拒付。如果你卖了5万美元，通道显示4.7万，差额3000美元——查一下手续费是不是1500、退款是不是1000、拒付是不是500，加起来能对上就行。</p>
+<p>比对2：通道结算金额 vs 银行到账金额。差异应该是跨境汇款费和汇率转换差。通常通道会出一份"结算单"（Settlement Report），上面写清楚了每笔扣费。</p>
+<p>比对3：逐笔核对异常。重点查那些"订单有但通道没有"或"通道有但银行没有"的记录——这些才是真正的问题。</p>
+<p><strong>第4步：建一个简单的对账表。</strong> 列名如下：日期、订单号、订单金额、通道交易额、手续费、退款/拒付、银行到账、差异。每月填一张表，差异列全都是0，就说明账对了。</p>
+<p><strong>一个省时技巧</strong>：如果你用Airwallex，它的后台可以直接关联Shopify订单，自动做对账。Stripe也有类似的报表功能。善用工具，能省大量手工活。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>长期不对账可能导致资金流失而不自知——小额差异长期积累可能变成大问题。</li><li>对账发现差异时要及时追查，超过90天的交易可能无法在通道后台查到详细记录。</li><li>退款和拒付的手续费容易被忽略，部分通道退款时会额外收取手续费，请以你的通道实际规则为准。</li><li>香港公司的银行对账单可能涉及多币种，对账时注意统一换算为同一货币比较。</li><li>如发现异常扣款或不明费用，应立即联系支付通道客服核实。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">对账就像每月核对快递账单——订单、通道、银行三方对一遍，差异全归零，你的钱才算真正落袋为安。</div></div>
+    <div class="next-preview">明天 <strong>Day 95</strong>：什么是分账？多卖家平台怎么分钱？<br>
+<a href="Day95-分账机制多卖家平台.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

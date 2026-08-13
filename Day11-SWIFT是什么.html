@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 11 · SWIFT是什么？为什么跨境转账总提到它？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>SWIFT是什么？为什么跨境转账总提到它？</h1>
+      <div class="day">Day 11 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>你给远在国外的亲戚寄一封信，信封上要写清楚：收件人姓名、街道门牌、城市、国家，还有一个关键的<strong>邮政编码</strong>。没有它，邮局的分拣机器不知道这封信该往哪个城市送。有了它，邮件才能精准地一路送到门口。</p>
+<p>银行之间跨国转钱，也需要一套"邮政编码系统"——它叫 SWIFT。</p>
+<h2>SWIFT 是什么</h2>
+<p><strong>SWIFT（环球银行金融电信协会，Society for Worldwide Interbank Financial Telecommunication，就是全球银行之间互相传递汇款信息的一个组织）</strong>。注意两个关键点：</p>
+<p>第一，<strong>它是一个"传话"的组织，不是"运钱"的组织</strong>。它不搬运真金白银，只负责把一条条汇款信息（比如"谁给谁转多少钱、从哪个账户到哪个账户"）安全、标准地从一个银行传到另一个银行。就好比邮局不负责印钱，只负责送信。</p>
+<p>第二，<strong>全球一万多家银行都接入了它的网络</strong>。你在香港的银行给美国银行发一条"转账指令"，指令内容全球统一格式，对方银行一看就懂。这就是它最大的价值：<strong>让全世界银行说同一种"汇款语言"</strong>。</p>
+<p>生活化理解：</p>
+<table><thead><tr><th>要素</th><th>信件</th><th>跨境汇款</th></tr></thead><tbody><tr><td>需要对方地址</td><td>街道门牌</td><td>收款银行信息（BIC，明天讲）</td></tr><tr><td>需要精准投递</td><td>邮政编码</td><td>SWIFT 编码</td></tr><tr><td>传递什么</td><td>信件本身</td><td>汇款指令（信息）</td></tr><tr><td>谁在传</td><td>邮政系统</td><td>SWIFT 网络</td></tr><tr><td>钱什么时候动</td><td>信到了才开始办事</td><td>信息确认后，钱才通过清算系统真正转移</td></tr></tbody></table>
+<p>还有一个常见误区：<strong>"SWIFT 转账"不是把钱直接从 A 银行打到 B 银行</strong>。SWIFT 传递的是"指令信息"，真正的资金转移靠的是各国清算系统（比如美国的 Fedwire 系统）和银行间的账户关系来完成。你可以理解为：SWIFT 先打电话通知"我要给你转钱"，然后钱再走另一条清算通道真正过去。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">左边一栋楼写着"香港汇丰银行"，右边一栋楼写着"美国某银行"，两栋楼之间画一条宽带，带子上写满小字"转账指令：从XXX账户向YYY账户转账10,000美元"，宽带中央挂一块牌子"SWIFT网络（只传信息）"</div></div><div class="step"><div class="num">2</div><div class="txt">宽带下方画一条灰色虚线，标注"资金走清算系统（另路运输）"</div></div></div></div>
+<div class="diagram-caption">▲ SWIFT 是两栋银行大楼之间的"电话线"，只传指令信息；钱本身走的是下面那条虚线（清算系统）。消息先到，钱后到，这就是跨境转账"慢半拍"的原因之一。</div>
+<div class="tip-box"><h3>实操小贴士</h3><ul><li><strong>收货款要提供 SWIFT 信息</strong>：海外客户或支付服务商往你香港账户打钱时，会问你要银行的 SWIFT 编码（BIC）和账号，这就是给对方银行一个"精准投递地址"。</li><li><strong>SWIFT 编码别抄错</strong>：抄错一个字母，汇款就可能被退回或卡在中转行，白白损失时间和手续费。填之前核对清楚。</li><li><strong>电汇不等于实时到账</strong>：走 SWIFT 的电汇通常要 1-3 个工作日（Day 14 细讲），客户催"为什么还没到账"时，你能解释清楚这个正常周期。</li></ul></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>警惕"冒充银行发 SWIFT 邮件"的骗局：正规银行不会用邮件让你点击链接更新信息，涉及转账信息一定要通过官方渠道确认。</li><li>收汇款时如果对方要求"先付一笔解冻费/手续费才能收到款"，这通常是典型诈骗，正规汇款不会有这种环节。</li><li>SWIFT 本身只传信息，资金安全还要看开户银行和清算渠道，选择有资质的银行，请核实开户行资质。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">SWIFT 是全球银行之间的"邮政编码系统"，负责把汇款指令标准化地传来传去——它只传话、不运钱，认清这一点，跨境转账的很多谜团就解开了。 （预告：要给银行发"信件"，得先写好收件地址——明天讲 BIC、SWIFT Code、IBAN 这些号码到底怎么用。）</div></div>
+    <div class="next-preview">明天 <strong>Day 12</strong>：IBAN、BIC、SWIFT Code——这些编号都是什么意思？<br>
+<a href="Day12-IBAN-BIC-SWIFT-Code都是什么意思.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>

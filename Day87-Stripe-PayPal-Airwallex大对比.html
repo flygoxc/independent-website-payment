@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day 87 · Stripe、PayPal、Airwallex大对比，哪个适合你？</title>
+<style>
+  :root {
+    --brand: #18b9dc;
+    --brand-dark: #0e8cab;
+    --bg: #fafbfc;
+    --text: #2c3338;
+    --text-light: #6b7785;
+    --border: #e4e8ec;
+    --card-bg: #ffffff;
+    --warning-bg: #fff8e6;
+    --warning-border: #ffd666;
+    --tip-bg: #eaf7fc;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.85;
+    font-size: 17px;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 24px 60px; }
+
+  /* 头图（渐变版） */
+  .hero {
+    border-radius: 12px;
+    min-height: 280px;
+    background:
+      radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 42%),
+      radial-gradient(circle at 82% 8%, rgba(255,255,255,0.14), transparent 36%),
+      linear-gradient(135deg, #18b9dc 0%, #0e8cab 100%);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    padding-bottom: 22px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -70px; right: -40px;
+    width: 220px; height: 220px;
+    border: 2px dashed rgba(255,255,255,0.35);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: 50px;
+    width: 90px; height: 90px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+  }
+  .hero .overlay {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 48px 20px 6px;
+  }
+  .hero .series {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid rgba(14,140,171,0.35);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 16px;
+    display: inline-block;
+  }
+  .hero h1 {
+    font-size: 23px;
+    font-weight: 700;
+    text-align: center;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 1px 8px rgba(0,60,80,0.35);
+  }
+  .hero .day {
+    margin-top: 12px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.92);
+  }
+
+  .content p { margin-bottom: 18px; }
+  .content h2 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 14px;
+    border-left: 4px solid var(--brand);
+    padding-left: 12px;
+  }
+  .content h3 {
+    font-size: 16.5px;
+    font-weight: 600;
+    margin: 26px 0 12px;
+    color: var(--brand-dark);
+  }
+  .content strong { font-weight: 600; }
+  .content ul, .content ol { margin: 0 0 18px 22px; }
+  .content li { margin-bottom: 8px; }
+  .content code {
+    background: #eef2f5;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    color: #0e8cab;
+  }
+
+  /* 表格 */
+  .content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 6px 0 22px;
+    font-size: 15px;
+    background: var(--card-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(20,40,60,0.06);
+  }
+  .content th {
+    background: var(--brand);
+    color: #fff;
+    text-align: left;
+    padding: 11px 14px;
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .content td {
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    vertical-align: top;
+  }
+  .content tr:nth-child(even) td { background: #f7fafc; }
+
+  /* 示意图 */
+  .diagram-wrapper {
+    margin: 28px 0 8px;
+    padding: 20px 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    text-align: center;
+    overflow-x: auto;
+  }
+  .diagram-wrapper svg { max-width: 100%; height: auto; }
+  .diagram-caption {
+    font-size: 13px;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .diagram-caption strong { color: var(--text); }
+
+  /* ASCII 框图 */
+  .ascii-diagram {
+    font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    color: var(--text);
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* 纯文字示意图 → 步骤卡片 */
+  .steps { text-align: left; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 6px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .num {
+    flex: 0 0 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    margin-top: 2px;
+  }
+  .step .txt { font-size: 15px; }
+
+  /* 提示框 */
+  .tip-box {
+    background: var(--tip-bg);
+    border: 1px solid var(--brand);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .tip-box h3 { font-size: 16px; color: var(--brand-dark); margin-bottom: 8px; }
+  .tip-box ol { padding-left: 20px; margin: 8px 0; }
+  .tip-box ul { padding-left: 20px; margin: 8px 0; }
+  .warning-box {
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 28px 0;
+  }
+  .warning-box h3 { font-size: 16px; color: #b8860b; margin-bottom: 8px; }
+  .warning-box ul { padding-left: 20px; margin: 8px 0; }
+
+  .summary-box {
+    border: 2px solid var(--brand);
+    border-radius: 12px;
+    padding: 22px 26px;
+    margin: 32px 0;
+    text-align: center;
+    background: linear-gradient(135deg, #18b9dc11, #ffffff);
+  }
+  .summary-box .label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--brand-dark);
+    margin-bottom: 6px;
+  }
+  .summary-box .text { font-size: 16px; font-weight: 600; line-height: 1.7; }
+
+  .next-preview {
+    text-align: center;
+    padding: 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    color: var(--text-light);
+  }
+  .next-preview strong { color: var(--text); }
+  .next-preview a { color: var(--brand-dark); text-decoration: none; border-bottom: 1px dashed var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 头图 -->
+  <div class="hero">
+    <div class="overlay">
+      <span class="series">独立站跨境支付100天</span>
+      <h1>Stripe、PayPal、Airwallex大对比，哪个适合你？</h1>
+      <div class="day">Day 87 / 100 · 阅读约 4 分钟</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+<p>老李最近在纠结：他的独立站要接入支付，朋友们推荐的"三大件"——Stripe、PayPal、Airwallex，名字都听过，但到底哪个好？他打开三个官网，看完更懵了："每个都说自己最好，这跟快递公司广告一样，都说自己最快最便宜。"</p>
+<p>其实，这三家就像三家快递公司，各有各的强项。今天我们就用一个"快递公司对比表"的方式，帮你把它们看明白。</p>
+<h2>一张图看懂</h2>
+<p>先说说这三家分别是干嘛的：</p>
+<ul><li><strong>Stripe</strong>：像顺丰，技术好、体验顺，但主要服务欧美线路</li><li><strong>PayPal</strong>：像EMS，全球通用、买家信任度高，但费率偏高</li><li><strong>Airwallex</strong>：像跨境专线物流，专门做跨境，费率和到账速度有优势</li></ul>
+<p>下面是详细对比：</p>
+<table><thead><tr><th>对比项</th><th>Stripe</th><th>PayPal</th><th>Airwallex</th></tr></thead><tbody><tr><td>主要优势</td><td>体验好、插件多</td><td>买家信任度高</td><td>跨境费率优、到账快</td></tr><tr><td>适合市场</td><td>欧美为主</td><td>全球</td><td>全球，亚太强</td></tr><tr><td>接入难度</td><td>低（插件丰富）</td><td>低（开箱即用）</td><td>中（需一定技术）</td></tr><tr><td>信用卡费率</td><td>约2.9%+$0.30</td><td>约3.49%+固定费用</td><td>请以实际报价为准</td></tr><tr><td>到账周期</td><td>约2-7天</td><td>可即时（付费用）</td><td>较快，请以实际为准</td></tr><tr><td>账户风控</td><td>较严</td><td>较严</td><td>相对灵活</td></tr><tr><td>香港公司</td><td>支持</td><td>支持</td><td>支持（创始于澳洲）</td></tr></tbody></table>
+<p><strong>关键区别说人话：</strong></p>
+<p><strong>Stripe</strong> 像一个"高级收银台"——页面漂亮、跳转少、转化率高，但对你做生意的方式管得比较严，一不小心可能被冻结账户。适合做正规品牌独立站的卖家。</p>
+<p><strong>PayPal</strong> 像一个"老牌钱包"——全球买家都认识它，很多人看到PayPal按钮就觉得"这个靠谱"，愿意下单。但费率偏高，而且买家可以比较容易地发起争议。</p>
+<p><strong>Airwallex</strong> 像一个"跨境金融管家"——不仅能收单，还能帮你做跨境汇款、多币种账户管理，费率通常更有竞争力。适合有一定规模、需要综合金融服务的卖家。</p>
+<h2>一张图看懂</h2>
+<div class="diagram-wrapper"><div class="steps"><div class="step"><div class="num">1</div><div class="txt">三家支付渠道的"快递公司式"定位图：</div></div><div class="step"><div class="num">2</div><div class="txt">收单体验        买家信任        跨境费率        综合金融</div></div><div class="step"><div class="num">3</div><div class="txt">Stripe      ★★★★★          ★★★            ★★★            ★★</div></div><div class="step"><div class="num">4</div><div class="txt">PayPal      ★★★            ★★★★★          ★★             ★★</div></div><div class="step"><div class="num">5</div><div class="txt">Airwallex   ★★★★           ★★★            ★★★★★          ★★★★★</div></div></div></div>
+<div class="diagram-caption">▲ 五星制，星越多越强。这只是定性对比，不是精确评分。就像快递公司的"服务星级"，帮你快速感受每家的长项和短板。</div>
+<div class="tip-box"><h3>实操小贴士</h3><p><strong>如果你刚起步（月流水1万美元以下）：</strong> 建议先用PayPal。为什么？因为买家信任度高，转化不愁，而且接入最简单，Shopify后台一键就能开。等流水大了，费率高的劣势才会显现。</p>
+<p><strong>如果你做品牌站（月流水1-10万美元）：</strong> 建议Stripe + PayPal双通道。Stripe做主力收单（体验好、转化高），PayPal做补充（满足偏好用PayPal的买家）。这样既保证了体验，又覆盖了所有买家。</p>
+<p><strong>如果你有一定规模（月流水10万美元以上）：</strong> 建议Stripe/PayPal + Airwallex组合。用Airwallex做跨境收单和资金归集，享受更优费率；同时保留Stripe/PayPal做前端收银。这样费率和体验都能兼顾。</p>
+<p><strong>一个实用技巧</strong>：不管选哪家，一定要在网站上同时放两个以上的支付按钮。就像快递柜里同时有顺丰和圆通的选项一样，让买家自己选，转化率会更高。</p></div>
+<div class="warning-box"><h3>风险提示</h3><ul><li>Stripe和PayPal的风控都比较严，新账户突然大额交易容易触发审核。建议上线初期循序渐进，别第一天就冲大单。</li><li>PayPal的买家保护政策偏向买家，卖家遇到争议时需要提供充分的发货和物流证据。</li><li>Airwallex的具体费率和到账周期因业务情况而异，请以实际报价为准，不要轻信网上过时的数据。</li><li>三家都可能随时调整费率政策，请以官网最新信息为准。</li></ul></div>
+<div class="summary-box"><div class="label">一句话总结</div><div class="text">Stripe拼体验、PayPal拼信任、Airwallex拼跨境——就像顺丰、EMS和专线快递，不是选一个，而是组合用效果最好。</div></div>
+    <div class="next-preview">明天 <strong>Day 88</strong>：怎么降低收单费率？5个实操技巧<br>
+<a href="Day88-怎么降低收单费率.html">查看下一篇 →</a></div>
+  </div>
+</div>
+</body>
+</html>
